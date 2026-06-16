@@ -1,6 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr">
-<head>
+<html lang="fr"><head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Carnet de Voyage</title>
@@ -166,7 +165,7 @@
     .trip-head input{border:none}
   }
 </style>
-</head>
+<style id="_goober"> .go1475592160{height:0;}.go1671063245{height:auto;}.go1888806478{display:flex;flex-wrap:wrap;flex-grow:1;}@media (min-width:600px){.go1888806478{flex-grow:initial;min-width:288px;}}.go167266335{background-color:#313131;font-size:0.875rem;line-height:1.43;letter-spacing:0.01071em;color:#fff;align-items:center;padding:6px 16px;border-radius:4px;box-shadow:0px 3px 5px -1px rgba(0,0,0,0.2),0px 6px 10px 0px rgba(0,0,0,0.14),0px 1px 18px 0px rgba(0,0,0,0.12);}.go3162094071{padding-left:20px;}.go3844575157{background-color:#313131;}.go1725278324{background-color:#43a047;}.go3651055292{background-color:#d32f2f;}.go4215275574{background-color:#ff9800;}.go1930647212{background-color:#2196f3;}.go946087465{display:flex;align-items:center;padding:8px 0;}.go703367398{display:flex;align-items:center;margin-left:auto;padding-left:16px;margin-right:-8px;}.go3963613292{width:100%;position:relative;transform:translateX(0);top:0;right:0;bottom:0;left:0;min-width:288px;}.go1141946668{box-sizing:border-box;display:flex;max-height:100%;position:fixed;z-index:1400;height:auto;width:auto;transition:top 300ms ease 0ms,right 300ms ease 0ms,bottom 300ms ease 0ms,left 300ms ease 0ms,max-width 300ms ease 0ms;pointer-events:none;max-width:calc(100% - 40px);}.go1141946668 .notistack-CollapseWrapper{padding:6px 0px;transition:padding 300ms ease 0ms;}@media (max-width:599.95px){.go1141946668{width:100%;max-width:calc(100% - 32px);}}.go3868796639 .notistack-CollapseWrapper{padding:2px 0px;}.go3118922589{top:14px;flex-direction:column;}.go1453831412{bottom:14px;flex-direction:column-reverse;}.go4027089540{left:20px;}@media (min-width:600px){.go4027089540{align-items:flex-start;}}@media (max-width:599.95px){.go4027089540{left:16px;}}.go2989568495{right:20px;}@media (min-width:600px){.go2989568495{align-items:flex-end;}}@media (max-width:599.95px){.go2989568495{right:16px;}}.go4034260886{left:50%;transform:translateX(-50%);}@media (min-width:600px){.go4034260886{align-items:center;}}</style></head>
 <body>
   <div class="topbar">
     <h1>🧭 Carnet de Voyage</h1>
@@ -182,17 +181,152 @@
   <div class="layout">
     <aside class="sidebar">
       <div class="lbl">Mes voyages</div>
-      <div id="tripList"></div>
+      <div id="tripList">
+    <button class="trip-item active" data-act="select" data-id="f19dff29-7f06-42c8-84e1-3976ccb1e366">
+      <div class="t">Lac de Remoray</div>
+      <div class="d">lundi 10 août → samedi 15 août</div>
+    </button></div>
       <button class="add-trip" data-act="add-trip">+ Nouveau voyage</button>
     </aside>
-    <main class="main" id="main"></main>
+    <main class="main" id="main">
+    <div class="trip-head">
+      <input class="title-in" data-field="title" value="Lac de Remoray" placeholder="Titre du voyage">
+      <input class="sub-in" data-field="subtitle" value="5 jours entre France, Suisse &amp; Allemagne" placeholder="Sous-titre (ex. 5 jours entre France et Suisse)">
+      <div class="meta-row">
+        <div class="field"><label>Du</label><input type="date" data-field="start" value="2026-08-10"></div>
+        <div class="field"><label>Au</label><input type="date" data-field="end" value="2026-08-15"></div>
+        <div class="field" style="flex:1 1 240px"><label>Base / hébergement</label><input type="text" data-field="base" value="Camping du Lac de Remoray · Labergement-Sainte-Marie" placeholder="Camping, hôtel…"></div>
+        <button class="mini danger" data-act="del-trip" data-id="f19dff29-7f06-42c8-84e1-3976ccb1e366" title="Supprimer ce voyage">Supprimer le voyage</button>
+      </div>
+    </div>
+    <div class="tabs">
+      <button class="tab " data-act="tab" data-tab="programme">Programme</button>
+      <button class="tab " data-act="tab" data-tab="carte">Carte &amp; réservations</button>
+      <button class="tab active" data-act="tab" data-tab="budget">Budget</button>
+    </div>
+    
+    <div class="params">
+      <div class="pcell"><label>Voyageurs (défaut)</label><input data-pfield="people" type="number" min="1" step="1" value="4"></div>
+      <div class="pcell" style="display:flex;align-items:flex-end"><button class="mini" data-act="apply-people" title="Mettre ce nombre de participants sur toutes les activités « ×pers »">↻ Appliquer à tout</button></div>
+      <div class="pcell"><label>Distance (km)</label><input data-pfield="km" type="number" step="any" value="1500"></div>
+      <div class="pcell"><label>Conso (L/100)</label><input data-pfield="conso" type="number" step="any" value="5.2"></div>
+      <div class="pcell"><label>Prix (€/L)</label><input data-pfield="fuel" type="number" step="any" value="1.95"></div>
+    </div>
+    <div class="bud-actions"><button class="mini" data-act="add-bud">+ Ajouter une ligne</button> <span class="hint2">Coche « ×pers » pour une activité par personne, puis ajuste le <b>nombre de participants</b> dans « Qté ». « option » = hors total de base. Carburant calculé depuis les paramètres.</span></div>
+    <table class="bud">
+      <thead><tr><th>Catégorie</th><th>Poste</th><th>Qté</th><th>PU (€)</th><th>Total</th><th>/pers</th><th>Option</th><th>Note</th><th></th></tr></thead>
+      <tbody><tr data-id="d1f08dac-a3a7-4a71-badb-cd5a0aab4e75">
+      <td><input data-bfield="cat" value="Nourriture"></td>
+      <td><input data-bfield="label" value="Courses (pique-niques, dîners)"></td>
+      <td class="num" style="width:78px"><input class="" data-bfield="qty" type="number" step="any" min="0" value="6" title="Quantité"></td>
+      <td class="num" style="width:84px"><input data-bfield="pu" type="number" step="any" value="33"></td>
+      <td class="tot">198 €</td>
+      <td style="width:48px;text-align:center"><button class="mini mini2 " data-act="bud-per" data-id="d1f08dac-a3a7-4a71-badb-cd5a0aab4e75" title="Multiplier par le nombre de voyageurs">×pers</button></td>
+      <td style="width:54px;text-align:center"><button class="mini mini2 " data-act="bud-opt" data-id="d1f08dac-a3a7-4a71-badb-cd5a0aab4e75" title="Dépense optionnelle">option</button></td>
+      <td><input data-bfield="note" value="profil économique" placeholder="note"></td>
+      <td style="width:30px"><button class="mini danger" data-act="del-bud" data-id="d1f08dac-a3a7-4a71-badb-cd5a0aab4e75">✕</button></td>
+    </tr><tr data-id="583253dd-7d29-4ea7-9663-1d53d7f8138c">
+      <td><input data-bfield="cat" value="Nourriture"></td>
+      <td><input data-bfield="label" value="Restaurants &amp; gourmandises"></td>
+      <td class="num" style="width:78px"><input class="qpers" data-bfield="qty" type="number" step="any" min="0" value="8" title="Nombre de participants"></td>
+      <td class="num" style="width:84px"><input data-bfield="pu" type="number" step="any" value="25"></td>
+      <td class="tot">200 €</td>
+      <td style="width:48px;text-align:center"><button class="mini mini2 on" data-act="bud-per" data-id="583253dd-7d29-4ea7-9663-1d53d7f8138c" title="Multiplier par le nombre de voyageurs">×pers</button></td>
+      <td style="width:54px;text-align:center"><button class="mini mini2 " data-act="bud-opt" data-id="583253dd-7d29-4ea7-9663-1d53d7f8138c" title="Dépense optionnelle">option</button></td>
+      <td><input data-bfield="note" value="" placeholder="note"></td>
+      <td style="width:30px"><button class="mini danger" data-act="del-bud" data-id="583253dd-7d29-4ea7-9663-1d53d7f8138c">✕</button></td>
+    </tr><tr data-id="ca36b42e-94b0-4acc-8afc-3f23c0bf8f97">
+      <td><input data-bfield="cat" value="Carburant"></td>
+      <td><input data-bfield="label" value="Carburant"></td>
+      <td class="num" style="width:78px"><span class="auto auto-q">78 L</span></td>
+      <td class="num" style="width:84px"><span class="auto auto-p">1.95</span></td>
+      <td class="tot">152 €</td>
+      <td style="width:48px;text-align:center"></td>
+      <td style="width:54px;text-align:center"><button class="mini mini2 " data-act="bud-opt" data-id="ca36b42e-94b0-4acc-8afc-3f23c0bf8f97" title="Dépense optionnelle">option</button></td>
+      <td><input data-bfield="note" value="" placeholder="note"></td>
+      <td style="width:30px"><button class="mini danger" data-act="del-bud" data-id="ca36b42e-94b0-4acc-8afc-3f23c0bf8f97">✕</button></td>
+    </tr><tr data-id="47cea1ce-9629-4432-a846-71901e26e9bf">
+      <td><input data-bfield="cat" value="Activités"></td>
+      <td><input data-bfield="label" value="Maison de la Réserve"></td>
+      <td class="num" style="width:78px"><input class="qpers" data-bfield="qty" type="number" step="any" min="0" value="4" title="Nombre de participants"></td>
+      <td class="num" style="width:84px"><input data-bfield="pu" type="number" step="any" value="5.75"></td>
+      <td class="tot">23 €</td>
+      <td style="width:48px;text-align:center"><button class="mini mini2 on" data-act="bud-per" data-id="47cea1ce-9629-4432-a846-71901e26e9bf" title="Multiplier par le nombre de voyageurs">×pers</button></td>
+      <td style="width:54px;text-align:center"><button class="mini mini2 " data-act="bud-opt" data-id="47cea1ce-9629-4432-a846-71901e26e9bf" title="Dépense optionnelle">option</button></td>
+      <td><input data-bfield="note" value="" placeholder="note"></td>
+      <td style="width:30px"><button class="mini danger" data-act="del-bud" data-id="47cea1ce-9629-4432-a846-71901e26e9bf">✕</button></td>
+    </tr><tr data-id="927dcef2-cc98-405a-85d4-c8eb39503e38">
+      <td><input data-bfield="cat" value="Activités"></td>
+      <td><input data-bfield="label" value="Bateau du Saut du Doubs"></td>
+      <td class="num" style="width:78px"><input class="qpers" data-bfield="qty" type="number" step="any" min="0" value="4" title="Nombre de participants"></td>
+      <td class="num" style="width:84px"><input data-bfield="pu" type="number" step="any" value="16"></td>
+      <td class="tot">64 €</td>
+      <td style="width:48px;text-align:center"><button class="mini mini2 on" data-act="bud-per" data-id="927dcef2-cc98-405a-85d4-c8eb39503e38" title="Multiplier par le nombre de voyageurs">×pers</button></td>
+      <td style="width:54px;text-align:center"><button class="mini mini2 " data-act="bud-opt" data-id="927dcef2-cc98-405a-85d4-c8eb39503e38" title="Dépense optionnelle">option</button></td>
+      <td><input data-bfield="note" value="" placeholder="note"></td>
+      <td style="width:30px"><button class="mini danger" data-act="del-bud" data-id="927dcef2-cc98-405a-85d4-c8eb39503e38">✕</button></td>
+    </tr><tr data-id="9b042ed9-98a8-472e-9ccb-20784e0c9c91">
+      <td><input data-bfield="cat" value="Activités"></td>
+      <td><input data-bfield="label" value="Gruyères — entrées"></td>
+      <td class="num" style="width:78px"><input class="qpers" data-bfield="qty" type="number" step="any" min="0" value="4" title="Nombre de participants"></td>
+      <td class="num" style="width:84px"><input data-bfield="pu" type="number" step="any" value="13"></td>
+      <td class="tot">52 €</td>
+      <td style="width:48px;text-align:center"><button class="mini mini2 on" data-act="bud-per" data-id="9b042ed9-98a8-472e-9ccb-20784e0c9c91" title="Multiplier par le nombre de voyageurs">×pers</button></td>
+      <td style="width:54px;text-align:center"><button class="mini mini2 on" data-act="bud-opt" data-id="9b042ed9-98a8-472e-9ccb-20784e0c9c91" title="Dépense optionnelle">option</button></td>
+      <td><input data-bfield="note" value="fromagerie + château" placeholder="note"></td>
+      <td style="width:30px"><button class="mini danger" data-act="del-bud" data-id="9b042ed9-98a8-472e-9ccb-20784e0c9c91">✕</button></td>
+    </tr><tr data-id="64735fea-2649-4006-a8e7-3cb9991c2138">
+      <td><input data-bfield="cat" value="Frais de route"></td>
+      <td><input data-bfield="label" value="Parkings"></td>
+      <td class="num" style="width:78px"><input class="" data-bfield="qty" type="number" step="any" min="0" value="1" title="Quantité"></td>
+      <td class="num" style="width:84px"><input data-bfield="pu" type="number" step="any" value="30"></td>
+      <td class="tot">30 €</td>
+      <td style="width:48px;text-align:center"><button class="mini mini2 " data-act="bud-per" data-id="64735fea-2649-4006-a8e7-3cb9991c2138" title="Multiplier par le nombre de voyageurs">×pers</button></td>
+      <td style="width:54px;text-align:center"><button class="mini mini2 " data-act="bud-opt" data-id="64735fea-2649-4006-a8e7-3cb9991c2138" title="Dépense optionnelle">option</button></td>
+      <td><input data-bfield="note" value="" placeholder="note"></td>
+      <td style="width:30px"><button class="mini danger" data-act="del-bud" data-id="64735fea-2649-4006-a8e7-3cb9991c2138">✕</button></td>
+    </tr><tr data-id="49956424-7251-4276-bbb1-f16a2a958dcb">
+      <td><input data-bfield="cat" value="Option"></td>
+      <td><input data-bfield="label" value="Télésiège du Morond"></td>
+      <td class="num" style="width:78px"><input class="qpers" data-bfield="qty" type="number" step="any" min="0" value="4" title="Nombre de participants"></td>
+      <td class="num" style="width:84px"><input data-bfield="pu" type="number" step="any" value="9"></td>
+      <td class="tot">36 €</td>
+      <td style="width:48px;text-align:center"><button class="mini mini2 on" data-act="bud-per" data-id="49956424-7251-4276-bbb1-f16a2a958dcb" title="Multiplier par le nombre de voyageurs">×pers</button></td>
+      <td style="width:54px;text-align:center"><button class="mini mini2 on" data-act="bud-opt" data-id="49956424-7251-4276-bbb1-f16a2a958dcb" title="Dépense optionnelle">option</button></td>
+      <td><input data-bfield="note" value="sinon montée à pied" placeholder="note"></td>
+      <td style="width:30px"><button class="mini danger" data-act="del-bud" data-id="49956424-7251-4276-bbb1-f16a2a958dcb">✕</button></td>
+    </tr><tr data-id="646ded25-a271-478e-bef9-c5d5641f6552">
+      <td><input data-bfield="cat" value="Option"></td>
+      <td><input data-bfield="label" value="Accrobranche Malbuisson"></td>
+      <td class="num" style="width:78px"><input class="qpers" data-bfield="qty" type="number" step="any" min="0" value="2" title="Nombre de participants"></td>
+      <td class="num" style="width:84px"><input data-bfield="pu" type="number" step="any" value="22"></td>
+      <td class="tot">44 €</td>
+      <td style="width:48px;text-align:center"><button class="mini mini2 on" data-act="bud-per" data-id="646ded25-a271-478e-bef9-c5d5641f6552" title="Multiplier par le nombre de voyageurs">×pers</button></td>
+      <td style="width:54px;text-align:center"><button class="mini mini2 on" data-act="bud-opt" data-id="646ded25-a271-478e-bef9-c5d5641f6552" title="Dépense optionnelle">option</button></td>
+      <td><input data-bfield="note" value="" placeholder="note"></td>
+      <td style="width:30px"><button class="mini danger" data-act="del-bud" data-id="646ded25-a271-478e-bef9-c5d5641f6552">✕</button></td>
+    </tr><tr data-id="3f65b972-16cc-4f92-997f-3554f9624100">
+      <td><input data-bfield="cat" value="Option"></td>
+      <td><input data-bfield="label" value="Vignette autoroute suisse"></td>
+      <td class="num" style="width:78px"><input class="" data-bfield="qty" type="number" step="any" min="0" value="0" title="Quantité"></td>
+      <td class="num" style="width:84px"><input data-bfield="pu" type="number" step="any" value="42"></td>
+      <td class="tot">0 €</td>
+      <td style="width:48px;text-align:center"><button class="mini mini2 " data-act="bud-per" data-id="3f65b972-16cc-4f92-997f-3554f9624100" title="Multiplier par le nombre de voyageurs">×pers</button></td>
+      <td style="width:54px;text-align:center"><button class="mini mini2 on" data-act="bud-opt" data-id="3f65b972-16cc-4f92-997f-3554f9624100" title="Dépense optionnelle">option</button></td>
+      <td><input data-bfield="note" value="si autoroute CH" placeholder="note"></td>
+      <td style="width:30px"><button class="mini danger" data-act="del-bud" data-id="3f65b972-16cc-4f92-997f-3554f9624100">✕</button></td>
+    </tr></tbody>
+    </table>
+    <div class="bud-total"><span>Total de base</span><span class="bt-base">667 €</span></div>
+    <div class="bud-total opt"><span>+ Options</span><span class="bt-opt">132 €</span></div>
+    <div class="bud-total grand"><span>Total avec options</span><span class="bt-grand">799 €</span></div></main>
   </div>
 
   <div class="modal-bg" id="modalBg">
     <div class="modal" id="modal"></div>
   </div>
 
-<script id="savedData" type="application/json">{"trips":[{"id":"f19dff29-7f06-42c8-84e1-3976ccb1e366","title":"Lac de Remoray","subtitle":"5 jours entre France, Suisse & Allemagne","start":"2026-08-10","end":"2026-08-15","base":"Camping du Lac de Remoray · Labergement-Sainte-Marie","days":[{"id":"1901fba4-38c7-4dbf-821a-e1ec48e62a11","date":"2026-08-10","country":"France","title":"Arrivée & les deux lacs","segs":[{"w":"Après-midi","t":"Installation au camping, sentier du lac de Remoray (réserve naturelle), Maison de la Réserve."},{"w":"Fin de journée","t":"Baignade au lac de Saint-Point, plage de Malbuisson."},{"w":"Soir","t":"Dîner tranquille, repérage des courses."}],"variante":"","eat":"","tip":"Faire le plein de Comté et de saucisse de Morteau pour les pique-niques.","trajets":"Lac de Remoray sur place · Malbuisson 5 min.","route":["base","reserve","stpoint"]},{"id":"57a8b5c3-7bd5-436e-bca7-85552df82cac","date":"2026-08-11","country":"Suisse","title":"Neuchâtel : ville & cigares","segs":[{"w":"Matin","t":"Vieille ville médiévale : ruelles, fontaines, château, collégiale, vue lac."},{"w":"Cigares","t":"Pattus Tabacs, rue Saint-Maurice 2 — cave à cigares (mardi 9h30–13h30 / 14h–18h30)."},{"w":"Midi","t":"Déjeuner sur les quais."},{"w":"Après-midi","t":"Quais, passerelle, bateau sur le lac, ou Laténium. Baignade possible."}],"variante":"La Chaux-de-Fonds — ville horlogère UNESCO (~1h).","eat":"Fondue & spécialités au centre : La Taverne Neuchâteloise (réserver) ou Le Cardinal (Seyon 9). Éco : pique-nique sur les quais. Prévoir des CHF.","tip":"Carte d’identité + un peu de francs suisses.","trajets":"~1h aller jusqu’à Neuchâtel.","route":["base","neuchatel"]},{"id":"45538c16-5de6-4812-ab83-580a1fc21af7","date":"2026-08-12","country":"France","title":"Le toit du Doubs : Mont d’Or","segs":[{"w":"Matin","t":"Métabief, télésiège du Morond puis crêtes jusqu’au Mont d’Or (1 463 m), panorama Mont Blanc."},{"w":"Midi","t":"Pique-nique sur les crêtes ou restaurant à Métabief."},{"w":"Après-midi (au choix)","t":"Accrobranche forêt de Malbuisson, paddle/baignade au lac Saint-Point, ou fruitière à Comté."}],"variante":"","eat":"","tip":"En altitude il fait frais : polaire + chaussures. Vérifier les horaires du télésiège.","trajets":"Métabief 10–15 min · Malbuisson 5 min.","route":["base","montdor"]},{"id":"25efaf19-40e3-45ad-8066-50135a8535d1","date":"2026-08-13","country":"Suisse","title":"Gruyères : fromage & château","segs":[{"w":"Matin","t":"Route vers Gruyères (~1h30). La Maison du Gruyère (fabrication du fromage AOP, expo interactive), puis la cité médiévale et son château (XIe siècle, panorama). Ados : musée HR Giger, créateur d’Alien."},{"w":"Midi","t":"Déjeuner à Gruyères : fondue moitié-moitié et spécialités."},{"w":"Après-midi","t":"Au choix : chocolaterie Maison Cailler à Broc (10 min, dégustation), la montagne du Moléson (télécabine, luge d’été, via ferrata), ou flânerie dans la cité."},{"w":"Soir","t":"Retour au camping (~1h30)."}],"variante":"Envie de lac ? Château de Chillon + Montreux (~45 min de Gruyères) — mais ça fait une grosse journée.","eat":"Fondue et spécialités dans la vieille ville de Gruyères ; terrasses face au château.","tip":"Carte d’identité + CHF. La vignette suisse (40 CHF) raccourcit la route par l’autoroute. Le DayPass La Gruyère combine fromagerie + château + Cailler.","trajets":"Gruyères ~1h30 aller · Cailler/Broc 10 min · retour ~1h30.","route":["base","maisongruyere","chgruyere"]},{"id":"7d64c312-9fa2-49ff-acb5-c51a2a895f53","date":"2026-08-14","country":"France","title":"Saut du Doubs & Gorges du Doubs","segs":[{"w":"Matin","t":"Saut du Doubs : croisière sur le lac de Chaillexon (cascade de 27 m) — ou location kayak/paddle sans permis (base de Chaillexon)."},{"w":"Midi","t":"Déjeuner à Morteau (saucisse)."},{"w":"Après-midi","t":"Belvédères des Gorges du Doubs (Échelles de la Mort)."},{"w":"Soir","t":"Dernier coucher de soleil et dîner d’au revoir au camping."}],"variante":"Variante gourmande : fruitière à Comté du côté de Morteau.","eat":"","tip":"","trajets":"Saut du Doubs (Villers-le-Lac) ~45 min · Morteau ~40 min.","route":["base","saut","morteau","gorges"]},{"id":"4c8e32eb-5931-4553-962e-4bcdeff3fcdb","date":"2026-08-15","country":"France","title":"Départ","segs":[{"w":"Matin","t":"Rangement, dernier petit-déjeuner face au lac, départ. 15 août férié : anticiper le trafic."}],"variante":"","eat":"","tip":"","trajets":"","route":["base"]}],"budget":[{"id":"d1f08dac-a3a7-4a71-badb-cd5a0aab4e75","cat":"Nourriture","label":"Courses (pique-niques, dîners)","qty":6,"pu":33,"note":"profil économique","per":"group"},{"id":"583253dd-7d29-4ea7-9663-1d53d7f8138c","cat":"Nourriture","label":"Restaurants & gourmandises","qty":4,"pu":20,"note":"","per":"person"},{"id":"ca36b42e-94b0-4acc-8afc-3f23c0bf8f97","cat":"Carburant","label":"Carburant","qty":45.5,"pu":1.95,"note":"","auto":"fuel"},{"id":"47cea1ce-9629-4432-a846-71901e26e9bf","cat":"Activités","label":"Maison de la Réserve","qty":4,"pu":5.75,"note":"","per":"person"},{"id":"927dcef2-cc98-405a-85d4-c8eb39503e38","cat":"Activités","label":"Bateau du Saut du Doubs","qty":4,"pu":16,"note":"","per":"person"},{"id":"9b042ed9-98a8-472e-9ccb-20784e0c9c91","cat":"Activités","label":"Gruyères — entrées","qty":4,"pu":13,"note":"fromagerie + château","per":"person","opt":true},{"id":"64735fea-2649-4006-a8e7-3cb9991c2138","cat":"Frais de route","label":"Parkings","qty":1,"pu":30,"note":"","per":"group"},{"id":"49956424-7251-4276-bbb1-f16a2a958dcb","cat":"Option","label":"Télésiège du Morond","qty":4,"pu":9,"note":"sinon montée à pied","per":"person","opt":true},{"id":"646ded25-a271-478e-bef9-c5d5641f6552","cat":"Option","label":"Accrobranche Malbuisson","qty":"2","pu":22,"note":"","per":"person","opt":true},{"id":"d473724e-d193-4378-9873-107a31b42cf8","cat":"Option","label":"Croisière lac de Neuchâtel","qty":4,"pu":15,"note":"","per":"person","opt":true},{"id":"3f65b972-16cc-4f92-997f-3554f9624100","cat":"Option","label":"Vignette autoroute suisse","qty":"0","pu":42,"note":"si autoroute CH","per":"group","opt":true}],"places":[{"id":"base","name":"Camping du Lac de Remoray","country":"France","lat":46.7717,"lng":6.2731,"must":false,"see":"Camp de base, entre le lac de Remoray (réserve naturelle) et le lac de Saint-Point.","book":""},{"id":"reserve","name":"Maison de la Réserve","country":"France","lat":46.766,"lng":6.272,"must":false,"see":"Expo nature ; l’une des avifaunes les plus riches de France.","book":"https://www.maisondelareserve.fr/"},{"id":"stpoint","name":"Lac de Saint-Point · Malbuisson","country":"France","lat":46.7972,"lng":6.2986,"must":false,"see":"Baignade, paddle, plage. Bateaux électriques sans permis (Le Spot).","book":"https://www.doubs.travel/activites-adrenaline/le-spot-du-lac-saint-point"},{"id":"montdor","name":"Mont d’Or (Métabief)","country":"France","lat":46.7625,"lng":6.3,"must":true,"see":"Panorama sur 300 sommets alpins, Mont Blanc compris. Télésiège du Morond ou montée à pied.","book":"https://www.station-metabief.com/"},{"id":"neuchatel","name":"Neuchâtel (vieille ville · Pattus Tabacs)","country":"Suisse","lat":46.992,"lng":6.93,"must":true,"see":"Vieille ville médiévale, château, collégiale, quais. Cigares chez Pattus Tabacs ; croisière sur le lac.","book":"https://www.navig.ch/"},{"id":"saut","name":"Saut du Doubs (Villers-le-Lac)","country":"France","lat":47.0625,"lng":6.668,"must":true,"see":"Croisière jusqu’à la cascade de 27 m, ou kayak/paddle sans permis.","book":"https://www.sautdudoubs.fr/"},{"id":"kayak","name":"Kayak / paddle · base de Chaillexon","country":"France","lat":47.06,"lng":6.662,"must":false,"see":"Location canoë, kayak, paddle pour pagayer les Bassins du Doubs.","book":"https://ckvillerslelac.fr/"},{"id":"morteau","name":"Morteau","country":"France","lat":47.057,"lng":6.606,"must":false,"see":"Vieille ville, capitale de la saucisse.","book":""},{"id":"gorges","name":"Gorges du Doubs · Échelles de la Mort","country":"France","lat":47.154,"lng":6.876,"must":false,"see":"Belvédères plongeants sur le Doubs frontière.","book":""},{"id":"maisongruyere","name":"La Maison du Gruyère (Pringy)","country":"Suisse","lat":46.5847,"lng":7.0686,"must":false,"see":"Fabrication du Gruyère AOP, expo interactive et fromagerie en activité.","book":"https://www.lamaisondugruyere.ch/"},{"id":"chgruyere","name":"Gruyères · cité & château","country":"Suisse","lat":46.5826,"lng":7.0822,"must":true,"see":"Cité médiévale, château du XIe siècle et panorama ; musée HR Giger (Alien) sur place.","book":"https://www.chateau-gruyeres.ch/"},{"id":"cailler","name":"Maison Cailler (Broc)","country":"Suisse","lat":46.6045,"lng":7.0995,"must":false,"see":"Chocolaterie : histoire du chocolat suisse et dégustation.","book":"https://cailler.ch/"}],"trajets":[{"from":"base","to":"neuchatel"},{"from":"base","to":"titisee"},{"from":"titisee","to":"fribourg"},{"from":"base","to":"saut"},{"from":"base","to":"montdor"}],"params":{"people":4,"km":1500,"conso":5.2,"fuel":1.95}}],"selectedId":"f19dff29-7f06-42c8-84e1-3976ccb1e366","tab":"budget","dayFilter":"all","mapMode":"live","avoidToll":true}</script>
+<script id="savedData" type="application/json">{"trips":[{"id":"f19dff29-7f06-42c8-84e1-3976ccb1e366","title":"Lac de Remoray","subtitle":"5 jours entre France, Suisse & Allemagne","start":"2026-08-10","end":"2026-08-15","base":"Camping du Lac de Remoray · Labergement-Sainte-Marie","days":[{"id":"1901fba4-38c7-4dbf-821a-e1ec48e62a11","date":"2026-08-10","country":"France","title":"Arrivée & les deux lacs","segs":[{"w":"Après-midi","t":"Installation au camping, sentier du lac de Remoray (réserve naturelle), Maison de la Réserve."},{"w":"Fin de journée","t":"Baignade au lac de Saint-Point, plage de Malbuisson."},{"w":"Soir","t":"Dîner tranquille, repérage des courses."}],"variante":"","eat":"","tip":"Faire le plein de Comté et de saucisse de Morteau pour les pique-niques.","trajets":"Lac de Remoray sur place · Malbuisson 5 min.","route":["base","reserve","stpoint"]},{"id":"57a8b5c3-7bd5-436e-bca7-85552df82cac","date":"2026-08-11","country":"Suisse","title":"Neuchâtel : ville & cigares","segs":[{"w":"Matin","t":"Vieille ville médiévale : ruelles, fontaines, château, collégiale, vue lac."},{"w":"Cigares","t":"Pattus Tabacs, rue Saint-Maurice 2 — cave à cigares (mardi 9h30–13h30 / 14h–18h30)."},{"w":"Midi","t":"Déjeuner sur les quais."},{"w":"Après-midi","t":"Quais, passerelle, bateau sur le lac, ou Laténium. Baignade possible."}],"variante":"La Chaux-de-Fonds — ville horlogère UNESCO (~1h).","eat":"Fondue & spécialités au centre : La Taverne Neuchâteloise (réserver) ou Le Cardinal (Seyon 9). Éco : pique-nique sur les quais. Prévoir des CHF.","tip":"Carte d’identité + un peu de francs suisses.","trajets":"~1h aller jusqu’à Neuchâtel.","route":["base","neuchatel"]},{"id":"45538c16-5de6-4812-ab83-580a1fc21af7","date":"2026-08-12","country":"France","title":"Le toit du Doubs : Mont d’Or","segs":[{"w":"Matin","t":"Métabief, télésiège du Morond puis crêtes jusqu’au Mont d’Or (1 463 m), panorama Mont Blanc."},{"w":"Midi","t":"Pique-nique sur les crêtes ou restaurant à Métabief."},{"w":"Après-midi (au choix)","t":"Accrobranche forêt de Malbuisson, paddle/baignade au lac Saint-Point, ou fruitière à Comté."}],"variante":"","eat":"","tip":"En altitude il fait frais : polaire + chaussures. Vérifier les horaires du télésiège.","trajets":"Métabief 10–15 min · Malbuisson 5 min.","route":["base","montdor"]},{"id":"25efaf19-40e3-45ad-8066-50135a8535d1","date":"2026-08-13","country":"Suisse","title":"Gruyères : fromage & château","segs":[{"w":"Matin","t":"Route vers Gruyères (~1h30). La Maison du Gruyère (fabrication du fromage AOP, expo interactive), puis la cité médiévale et son château (XIe siècle, panorama). Ados : musée HR Giger, créateur d’Alien."},{"w":"Midi","t":"Déjeuner à Gruyères : fondue moitié-moitié et spécialités."},{"w":"Après-midi","t":"Au choix : chocolaterie Maison Cailler à Broc (10 min, dégustation), la montagne du Moléson (télécabine, luge d’été, via ferrata), ou flânerie dans la cité."},{"w":"Soir","t":"Retour au camping (~1h30)."}],"variante":"Envie de lac ? Château de Chillon + Montreux (~45 min de Gruyères) — mais ça fait une grosse journée.","eat":"Fondue et spécialités dans la vieille ville de Gruyères ; terrasses face au château.","tip":"Carte d’identité + CHF. La vignette suisse (40 CHF) raccourcit la route par l’autoroute. Le DayPass La Gruyère combine fromagerie + château + Cailler.","trajets":"Gruyères ~1h30 aller · Cailler/Broc 10 min · retour ~1h30.","route":["base","maisongruyere","chgruyere"]},{"id":"7d64c312-9fa2-49ff-acb5-c51a2a895f53","date":"2026-08-14","country":"France","title":"Saut du Doubs & Gorges du Doubs","segs":[{"w":"Matin","t":"Saut du Doubs : croisière sur le lac de Chaillexon (cascade de 27 m) — ou location kayak/paddle sans permis (base de Chaillexon)."},{"w":"Midi","t":"Déjeuner à Morteau (saucisse)."},{"w":"Après-midi","t":"Belvédères des Gorges du Doubs (Échelles de la Mort)."},{"w":"Soir","t":"Dernier coucher de soleil et dîner d’au revoir au camping."}],"variante":"Variante gourmande : fruitière à Comté du côté de Morteau.","eat":"","tip":"","trajets":"Saut du Doubs (Villers-le-Lac) ~45 min · Morteau ~40 min.","route":["base","saut","morteau","gorges"]},{"id":"4c8e32eb-5931-4553-962e-4bcdeff3fcdb","date":"2026-08-15","country":"France","title":"Départ","segs":[{"w":"Matin","t":"Rangement, dernier petit-déjeuner face au lac, départ. 15 août férié : anticiper le trafic."}],"variante":"","eat":"","tip":"","trajets":"","route":["base"]}],"budget":[{"id":"d1f08dac-a3a7-4a71-badb-cd5a0aab4e75","cat":"Nourriture","label":"Courses (pique-niques, dîners)","qty":6,"pu":33,"note":"profil économique","per":"group"},{"id":"583253dd-7d29-4ea7-9663-1d53d7f8138c","cat":"Nourriture","label":"Restaurants & gourmandises","qty":"8","pu":"25","note":"","per":"person"},{"id":"ca36b42e-94b0-4acc-8afc-3f23c0bf8f97","cat":"Carburant","label":"Carburant","qty":45.5,"pu":1.95,"note":"","auto":"fuel"},{"id":"47cea1ce-9629-4432-a846-71901e26e9bf","cat":"Activités","label":"Maison de la Réserve","qty":4,"pu":5.75,"note":"","per":"person"},{"id":"927dcef2-cc98-405a-85d4-c8eb39503e38","cat":"Activités","label":"Bateau du Saut du Doubs","qty":4,"pu":16,"note":"","per":"person"},{"id":"9b042ed9-98a8-472e-9ccb-20784e0c9c91","cat":"Activités","label":"Gruyères — entrées","qty":4,"pu":13,"note":"fromagerie + château","per":"person","opt":true},{"id":"64735fea-2649-4006-a8e7-3cb9991c2138","cat":"Frais de route","label":"Parkings","qty":1,"pu":30,"note":"","per":"group"},{"id":"49956424-7251-4276-bbb1-f16a2a958dcb","cat":"Option","label":"Télésiège du Morond","qty":4,"pu":9,"note":"sinon montée à pied","per":"person","opt":true},{"id":"646ded25-a271-478e-bef9-c5d5641f6552","cat":"Option","label":"Accrobranche Malbuisson","qty":"2","pu":22,"note":"","per":"person","opt":true},{"id":"3f65b972-16cc-4f92-997f-3554f9624100","cat":"Option","label":"Vignette autoroute suisse","qty":"0","pu":42,"note":"si autoroute CH","per":"group","opt":true}],"places":[{"id":"base","name":"Camping du Lac de Remoray","country":"France","lat":46.7717,"lng":6.2731,"must":false,"see":"Camp de base, entre le lac de Remoray (réserve naturelle) et le lac de Saint-Point.","book":""},{"id":"reserve","name":"Maison de la Réserve","country":"France","lat":46.766,"lng":6.272,"must":false,"see":"Expo nature ; l’une des avifaunes les plus riches de France.","book":"https://www.maisondelareserve.fr/"},{"id":"stpoint","name":"Lac de Saint-Point · Malbuisson","country":"France","lat":46.7972,"lng":6.2986,"must":false,"see":"Baignade, paddle, plage. Bateaux électriques sans permis (Le Spot).","book":"https://www.doubs.travel/activites-adrenaline/le-spot-du-lac-saint-point"},{"id":"montdor","name":"Mont d’Or (Métabief)","country":"France","lat":46.7625,"lng":6.3,"must":true,"see":"Panorama sur 300 sommets alpins, Mont Blanc compris. Télésiège du Morond ou montée à pied.","book":"https://www.station-metabief.com/"},{"id":"neuchatel","name":"Neuchâtel (vieille ville · Pattus Tabacs)","country":"Suisse","lat":46.992,"lng":6.93,"must":true,"see":"Vieille ville médiévale, château, collégiale, quais. Cigares chez Pattus Tabacs ; croisière sur le lac.","book":"https://www.navig.ch/"},{"id":"saut","name":"Saut du Doubs (Villers-le-Lac)","country":"France","lat":47.0625,"lng":6.668,"must":true,"see":"Croisière jusqu’à la cascade de 27 m, ou kayak/paddle sans permis.","book":"https://www.sautdudoubs.fr/"},{"id":"kayak","name":"Kayak / paddle · base de Chaillexon","country":"France","lat":47.06,"lng":6.662,"must":false,"see":"Location canoë, kayak, paddle pour pagayer les Bassins du Doubs.","book":"https://ckvillerslelac.fr/"},{"id":"morteau","name":"Morteau","country":"France","lat":47.057,"lng":6.606,"must":false,"see":"Vieille ville, capitale de la saucisse.","book":""},{"id":"gorges","name":"Gorges du Doubs · Échelles de la Mort","country":"France","lat":47.154,"lng":6.876,"must":false,"see":"Belvédères plongeants sur le Doubs frontière.","book":""},{"id":"maisongruyere","name":"La Maison du Gruyère (Pringy)","country":"Suisse","lat":46.5847,"lng":7.0686,"must":false,"see":"Fabrication du Gruyère AOP, expo interactive et fromagerie en activité.","book":"https://www.lamaisondugruyere.ch/"},{"id":"chgruyere","name":"Gruyères · cité & château","country":"Suisse","lat":46.5826,"lng":7.0822,"must":true,"see":"Cité médiévale, château du XIe siècle et panorama ; musée HR Giger (Alien) sur place.","book":"https://www.chateau-gruyeres.ch/"},{"id":"cailler","name":"Maison Cailler (Broc)","country":"Suisse","lat":46.6045,"lng":7.0995,"must":false,"see":"Chocolaterie : histoire du chocolat suisse et dégustation.","book":"https://cailler.ch/"}],"trajets":[{"from":"base","to":"neuchatel"},{"from":"base","to":"titisee"},{"from":"titisee","to":"fribourg"},{"from":"base","to":"saut"},{"from":"base","to":"montdor"}],"params":{"people":4,"km":1500,"conso":5.2,"fuel":1.95}}],"selectedId":"f19dff29-7f06-42c8-84e1-3976ccb1e366","tab":"budget","dayFilter":"all","mapMode":"live","avoidToll":true}</script>
 <script>
 "use strict";
 /* ---------- storage (robust: localStorage if available, else memory) ---------- */
@@ -866,5 +1000,6 @@ document.addEventListener('input',e=>{
 
 render();
 </script>
-</body>
-</html>
+
+
+</body></html>
