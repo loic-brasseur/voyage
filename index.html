@@ -206,7 +206,7 @@ function load(){
   if(mem)return mem;
   return null;
 }
-function loadSyncCfg(){try{const r=localStorage.getItem(SYNCKEY);if(r)return JSON.parse(r);}catch(e){}return {url:'',on:false};}
+function loadSyncCfg(){try{const c=JSON.parse(localStorage.getItem(SYNCKEY)||'{}');return {binId:c.binId||'',key:c.key||'',on:!!c.on};}catch(e){}return {binId:'',key:'',on:false};}
 function saveSyncCfg(){try{localStorage.setItem(SYNCKEY,JSON.stringify(syncCfg));}catch(e){}}
 let syncCfg=loadSyncCfg();
 function save(opts){
@@ -347,10 +347,11 @@ function migrate(s){
         if(b.label==='Carburant (~650 km)'){b.label='Carburant';b.auto='fuel';b.cat='Carburant';}
         if(b.label==='Titisee — baignade / pédalo'||b.label==='Gruyères & Chillon — entrées'){b.label='Gruyères — entrées';b.cat='Activités';b.per='person';if(Number(b.qty)<2)b.qty=Number(t.params&&t.params.people)||4;if(!Number(b.pu)||Number(b.pu)===22)b.pu=13;b.note='fromagerie + château';}
       });
+      const hasOpts=(t.budget||[]).some(b=>b.opt);
       const have={};(t.budget||[]).forEach(b=>{have[b.label]=b;});
       (sd.budget||[]).forEach(sb=>{const b=have[sb.label];
-        if(b){if(sb.per)b.per=sb.per;if(sb.opt)b.opt=true;if(sb.auto)b.auto=sb.auto;if(sb.cat==='Option')b.cat='Option';}
-        else t.budget.push(Object.assign({},sb,{id:uid()}));});
+        if(b){if(sb.per&&!b.per)b.per=sb.per;if(sb.auto&&!b.auto)b.auto=sb.auto;}
+        else if(!hasOpts)t.budget.push(Object.assign({},sb,{id:uid()}));});
     }
   });
   return s;
@@ -824,32 +825,32 @@ function downloadPage(){
 let lastRemoteV=0, pushTimer=null, pulling=false, loopOn=false;
 function hhmm(){try{return new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});}catch(e){return '';}}
 function setSyncStatus(txt){const el=document.getElementById('syncStatus');if(el)el.textContent=txt||'';}
-function schedulePush(){
-  if(!syncCfg.on||!syncCfg.url||typeof fetch==='undefined')return;
-  clearTimeout(pushTimer);pushTimer=setTimeout(syncPush,1500);
-}
+function syncReady(){return syncCfg.on&&syncCfg.binId&&syncCfg.key&&typeof fetch!=='undefined';}
+function binUrl(latest){return 'https://api.jsonbin.io/v3/b/'+encodeURIComponent(syncCfg.binId)+(latest?'/latest':'');}
+function schedulePush(){if(!syncReady())return;clearTimeout(pushTimer);pushTimer=setTimeout(syncPush,1500);}
 function syncPush(){
-  if(!syncCfg.on||!syncCfg.url||typeof fetch==='undefined')return;
+  if(!syncReady())return;
   const v=(state&&state.__editedAt)||Date.now();
+  if(state)state.__editedAt=v;
   setSyncStatus('Envoi…');
-  fetch(syncCfg.url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({v:v,data:state})})
-    .then(function(r){if(!r.ok)throw 0;lastRemoteV=v;setSyncStatus('Synchronisé '+hhmm());})
+  fetch(binUrl(false),{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':syncCfg.key,'X-Bin-Versioning':'false'},body:JSON.stringify({v:v,data:state})})
+    .then(function(r){if(!r.ok)throw 0;lastRemoteV=v;save({noEdit:true,noPush:true});setSyncStatus('Synchronisé '+hhmm());})
     .catch(function(){setSyncStatus('Hors-ligne ⚠');});
 }
 function syncPull(isInit){
-  if(!syncCfg.on||!syncCfg.url||typeof fetch==='undefined'||pulling){if(isInit)startLoop();return;}
+  if(!syncReady()||pulling){if(isInit)startLoop();return;}
   pulling=true;
-  fetch(syncCfg.url).then(function(r){return r.ok?r.json():Promise.reject();}).then(function(j){
+  fetch(binUrl(true),{headers:{'X-Master-Key':syncCfg.key,'X-Bin-Meta':'false'}}).then(function(r){return r.ok?r.json():Promise.reject();}).then(function(j){
     pulling=false;
     const rv=(j&&j.v)?j.v:0, lv=(state&&state.__editedAt)||0;
     if(j&&j.data&&j.data.trips&&rv>lv){
       state=j.data;migrate(state);
       if(!state.tab)state.tab='programme';if(state.dayFilter==null)state.dayFilter='all';if(!state.mapMode)state.mapMode='live';if(state.avoidToll==null)state.avoidToll=true;
       lastRemoteV=rv;save({noEdit:true,noPush:true});render();setSyncStatus('Mis à jour '+hhmm());
-    }else if(lv>rv){lastRemoteV=rv;syncPush();}
+    }else if(state&&state.trips&&state.trips.length&&lv>=rv){syncPush();}
     else setSyncStatus('À jour '+hhmm());
     if(isInit)startLoop();
-  }).catch(function(){pulling=false;if(isInit){syncPush();startLoop();}else setSyncStatus('Hors-ligne ⚠');});
+  }).catch(function(){pulling=false;setSyncStatus('Hors-ligne ⚠');if(isInit)startLoop();});
 }
 function startLoop(){
   if(loopOn)return;loopOn=true;
@@ -859,25 +860,26 @@ function openSyncModal(){
   const m=document.getElementById('modal');
   m.innerHTML=`
     <h2>Synchroniser avec un autre appareil</h2>
-    <p style="font-size:13px;color:#3a4a45;margin:0 0 8px">Toi et ta femme collez la <b>même adresse</b> ci-dessous : vos modifications se synchronisent automatiquement (~8 s).</p>
-    <label>Adresse de synchronisation (URL)</label>
-    <input type="text" id="sync_url" value="${esc(syncCfg.url)}" placeholder="https://getpantry.cloud/apiv1/pantry/TON-ID/basket/voyage">
+    <p style="font-size:13px;color:#3a4a45;margin:0 0 8px">Toi et ta femme entrez le <b>même Bin ID</b> et la <b>même clé</b> : vos modifications se synchronisent (~8 s).</p>
+    <label>Bin ID</label><input type="text" id="sync_bin" value="${esc(syncCfg.binId)}" placeholder="ex. 65a1b2c3d4e5f6a1b2c3d4e5">
+    <label>Clé (X-Master-Key)</label><input type="text" id="sync_key" value="${esc(syncCfg.key)}" placeholder="$2a$10$...">
     <label style="display:flex;align-items:center;gap:8px;margin-top:10px;text-transform:none;letter-spacing:0;font-weight:600;color:#243430"><input type="checkbox" id="sync_on" ${syncCfg.on?'checked':''} style="width:auto"> Activer la synchronisation</label>
     <div style="font-size:12px;color:#7d958c;margin-top:12px;line-height:1.55">
-      <b>Obtenir l'adresse (gratuit, 2 min) :</b><br>
-      1. Va sur <b>getpantry.cloud</b> → inscris-toi avec un e-mail → tu reçois un <b>Pantry ID</b>.<br>
-      2. Ton adresse = <code>https://getpantry.cloud/apiv1/pantry/TON-ID/basket/voyage</code><br>
-      3. Colle-la, coche « Activer », Enregistrer. <b>Donne la même adresse à ta femme.</b><br>
-      <i>Astuce : configure-la d'abord de ton côté (ça envoie ton plan), puis chez elle (elle le reçoit).</i>
+      <b>Obtenir Bin ID + clé (gratuit) :</b><br>
+      1. Crée un compte sur <b>jsonbin.io</b>.<br>
+      2. <b>Create Bin</b> → mets <code>{}</code> dans le contenu → <b>Create</b>. Copie le <b>BIN ID</b> affiché en haut.<br>
+      3. Menu <b>API Keys</b> → copie ta <b>X-MASTER-KEY</b>.<br>
+      4. Colle les deux ici, coche « Activer », Enregistrer. <b>Donne les mêmes à ta femme.</b><br>
+      <i>Configure d'abord de ton côté (ça envoie ton plan), puis chez elle (elle le reçoit).</i>
     </div>
     <div class="modal-foot">
       <button class="cancel" data-act="close-modal" type="button">Fermer</button>
       <button class="save" id="syncSaveBtn" type="button">Enregistrer &amp; connecter</button>
     </div>`;
   m.querySelector('#syncSaveBtn').onclick=function(){
-    syncCfg={url:m.querySelector('#sync_url').value.trim(),on:m.querySelector('#sync_on').checked};
+    syncCfg={binId:m.querySelector('#sync_bin').value.trim(),key:m.querySelector('#sync_key').value.trim(),on:m.querySelector('#sync_on').checked};
     saveSyncCfg();closeModal();
-    if(syncCfg.on&&syncCfg.url){setSyncStatus('Connexion…');lastRemoteV=0;syncPull(true);}else setSyncStatus('');
+    if(syncReady()){setSyncStatus('Connexion…');lastRemoteV=0;syncPull(true);}else setSyncStatus('');
   };
   document.getElementById('modalBg').classList.add('show');
 }
@@ -937,7 +939,7 @@ document.addEventListener('input',e=>{
 });
 
 render();
-if(syncCfg.on&&syncCfg.url){setSyncStatus('Connexion…');syncPull(true);}
+if(syncReady()){setSyncStatus('Connexion…');syncPull(true);}
 </script>
 </body>
 </html>
