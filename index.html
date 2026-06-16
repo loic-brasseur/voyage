@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Carnet de Voyage</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+  :root{
+    --green:#2f7d68; --red:#c0392b; --gold:#b8860b; --blue:#5a6b8c;
+    --ink:#243430; --muted:#7d958c; --line:#e4ebe8; --bg:#f3f7f5;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:var(--ink);background:#eef3f1}
+  h1,h2,h3{font-family:Georgia,"Times New Roman",serif}
+  button{font-family:inherit;cursor:pointer}
+  input,textarea,select{font-family:inherit;font-size:14px;color:var(--ink)}
+
+  /* Top bar */
+  .topbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:10px;
+    background:linear-gradient(135deg,#1f5f54,#2e8b6f);color:#fff;padding:10px 16px;flex-wrap:wrap}
+  .topbar h1{font-size:18px;margin:0;letter-spacing:.3px;flex:0 0 auto}
+  .topbar .sp{flex:1 1 auto}
+  .btn{border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.14);color:#fff;
+    border-radius:18px;padding:6px 13px;font-size:13px;white-space:nowrap}
+  .btn:hover{background:rgba(255,255,255,.26)}
+  .btn.solid{background:#fff;color:#1f5f54;border-color:#fff;font-weight:600}
+
+  .layout{display:flex;min-height:calc(100vh - 52px)}
+  /* Sidebar */
+  .sidebar{width:240px;flex:0 0 240px;background:#fff;border-right:1px solid var(--line);padding:12px;overflow:auto}
+  .sidebar .lbl{font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);font-weight:700;margin:4px 4px 8px}
+  .trip-item{display:block;width:100%;text-align:left;border:1px solid var(--line);background:#fff;border-radius:10px;
+    padding:9px 11px;margin-bottom:8px;color:var(--ink)}
+  .trip-item:hover{border-color:#bcd3ca}
+  .trip-item.active{border-color:var(--green);box-shadow:0 0 0 2px rgba(47,125,104,.15);background:#f3faf7}
+  .trip-item .t{font-weight:600;font-size:14px}
+  .trip-item .d{font-size:12px;color:var(--muted);margin-top:2px}
+  .add-trip{width:100%;border:1px dashed #bcd3ca;background:#f7faf9;color:#2f7d68;border-radius:10px;padding:9px;font-weight:600}
+
+  /* Main */
+  .main{flex:1 1 auto;padding:18px 22px;overflow:auto;max-width:920px}
+  .trip-head{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin-bottom:14px}
+  .trip-head input{border:none;border-bottom:1px dashed transparent;background:transparent;width:100%;padding:2px 0}
+  .trip-head input:hover{border-bottom-color:#cfe0d9}
+  .trip-head input:focus{outline:none;border-bottom-color:var(--green)}
+  .trip-head .title-in{font-size:24px;font-weight:700;font-family:Georgia,serif;color:#1f5f54}
+  .trip-head .sub-in{font-size:14px;color:#3a4a45}
+  .meta-row{display:flex;gap:18px;flex-wrap:wrap;margin-top:10px;align-items:center}
+  .meta-row label{font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block}
+  .meta-row .field{min-width:130px}
+  .meta-row .field input{font-size:13px}
+
+  .tabs{display:flex;gap:8px;margin-bottom:12px}
+  .tab{border:1px solid var(--line);background:#fff;border-radius:18px;padding:7px 16px;font-size:13px;color:var(--muted);font-weight:600}
+  .tab.active{background:#1f5f54;color:#fff;border-color:#1f5f54}
+
+  /* Day cards */
+  .day{position:relative;border:1px solid var(--line);border-left:6px solid var(--accent,#2f7d68);
+    border-radius:12px;background:#fff;padding:14px 16px;margin-bottom:13px}
+  .day-head{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:1px solid #eef2f0;padding-bottom:8px;margin-bottom:9px;gap:10px}
+  .day-head .lft{display:flex;gap:10px;align-items:baseline}
+  .badge{font-family:Georgia,serif;font-weight:700;font-size:11px;color:#fff;background:var(--accent,#2f7d68);border-radius:6px;padding:3px 9px;white-space:nowrap}
+  .day-title{font-size:17px;font-weight:700;color:#233}
+  .day-date{font-size:12px;color:var(--muted);margin-top:1px}
+  .flag{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#fff;background:var(--accent,#2f7d68);padding:3px 11px;border-radius:18px;white-space:nowrap}
+  .segs{display:flex;flex-wrap:wrap;gap:8px 18px}
+  .seg{width:46%;min-width:210px}
+  .seg .when{font-size:11px;letter-spacing:.6px;text-transform:uppercase;font-weight:700;color:var(--accent,#2f7d68)}
+  .seg .what{font-size:13px;color:#2b3b36}
+  .box{margin-top:8px;border-radius:8px;padding:7px 11px;font-size:12.5px}
+  .box.variante{background:#eef4f9;border:1px solid #d9e6f0;color:#2f4a5e}
+  .box.eat{background:#fbf2ec;border:1px solid #f0ddd0;color:#7a4a30}
+  .box.tip{background:#fbf7ec;border:1px solid #f0e6c8;color:#6b5a2a}
+  .box b{font-weight:700}
+  .trajets{margin-top:8px;font-size:12px;color:var(--muted)}
+  .day-actions{display:flex;gap:6px;margin-top:11px;flex-wrap:wrap}
+  .mini{border:1px solid var(--line);background:#fff;border-radius:8px;padding:4px 9px;font-size:12px;color:#50685f}
+  .mini:hover{background:var(--bg)}
+  .mini.danger{color:#b3402f;border-color:#f0d3cd}
+  .add-day{width:100%;border:1px dashed #bcd3ca;background:#f7faf9;color:#2f7d68;border-radius:11px;padding:11px;font-weight:600;font-size:14px}
+
+  /* Budget */
+  table.bud{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  table.bud th{background:#1f5f54;color:#fff;font-size:11px;letter-spacing:.5px;text-transform:uppercase;padding:8px 8px;text-align:left}
+  table.bud td{border-bottom:1px solid #eef2f0;padding:5px 8px;font-size:13px;vertical-align:middle}
+  table.bud input{width:100%;border:1px solid transparent;border-radius:6px;padding:4px 5px;background:#fbfdfc}
+  table.bud input:hover{border-color:#dfeae5}
+  table.bud input:focus{outline:none;border-color:var(--green);background:#fff}
+  td.num input{text-align:right}
+  td.tot{text-align:right;font-weight:700;color:#1f5f54;white-space:nowrap}
+  .bud-total{display:flex;justify-content:space-between;align-items:center;background:#1f5f54;color:#fff;border-radius:12px;padding:12px 16px;margin-top:12px;font-weight:700;font-size:16px}
+  .bud-actions{margin:10px 0}
+
+  .empty{color:var(--muted);font-style:italic;padding:30px;text-align:center;background:#fff;border:1px dashed var(--line);border-radius:12px}
+
+  /* Modal */
+  .modal-bg{position:fixed;inset:0;background:rgba(20,40,35,.45);display:none;align-items:flex-start;justify-content:center;z-index:50;padding:24px;overflow:auto}
+  .modal-bg.show{display:flex}
+  .modal{background:#fff;border-radius:14px;max-width:620px;width:100%;padding:20px;box-shadow:0 14px 40px rgba(0,0,0,.25)}
+  .modal h2{margin:0 0 14px;font-size:19px;color:#1f5f54}
+  .modal label{display:block;font-size:11px;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);font-weight:700;margin:10px 0 3px}
+  .modal input[type=text],.modal input[type=date],.modal select,.modal textarea{width:100%;border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+  .modal textarea{min-height:46px;resize:vertical}
+  .seg-row{display:flex;gap:8px;margin-bottom:7px;align-items:flex-start}
+  .seg-row .w{flex:0 0 130px}
+  .seg-row .x{flex:1 1 auto}
+  .seg-row .rm{flex:0 0 auto;border:1px solid #f0d3cd;color:#b3402f;background:#fff;border-radius:8px;padding:6px 9px}
+  .add-seg{border:1px dashed #bcd3ca;background:#f7faf9;color:#2f7d68;border-radius:8px;padding:6px 11px;font-size:13px;font-weight:600;margin-top:4px}
+  .modal-foot{display:flex;justify-content:flex-end;gap:10px;margin-top:18px}
+  .modal-foot .cancel{border:1px solid var(--line);background:#fff;border-radius:9px;padding:9px 16px}
+  .modal-foot .save{border:none;background:#1f5f54;color:#fff;border-radius:9px;padding:9px 18px;font-weight:600}
+  .row2{display:flex;gap:12px;flex-wrap:wrap}
+  .row2 .c{flex:1 1 180px}
+  .hint{font-size:12px;color:var(--muted);margin-top:14px;text-align:center}
+
+  @media (max-width:720px){.sidebar{display:none}.seg{width:100%}}
+
+  /* Carte */
+  #map{border-radius:12px;border:1px solid var(--line);margin-bottom:10px;overflow:hidden}
+  .map-fallback{padding:26px;text-align:center;color:var(--muted)}
+  .legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:#50685f;margin:0 2px 8px}
+  .legend .k{display:inline-flex;align-items:center;gap:5px}
+  .legend .dot{width:11px;height:11px;border-radius:50%;display:inline-block}
+  .sec-title{font-family:Georgia,serif;font-size:15px;color:#1f5f54;margin:16px 2px 9px;border-bottom:2px solid #e8f0ec;padding-bottom:5px}
+  .place{border:1px solid var(--line);border-left:5px solid var(--accent,#2f7d68);border-radius:10px;background:#fff;padding:10px 12px;margin-bottom:9px}
+  .place .ph{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+  .place .pn{font-weight:700;font-size:14px}
+  .place .pc{font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:#fff;background:var(--accent,#2f7d68);border-radius:14px;padding:2px 9px;white-space:nowrap}
+  .place .ps{font-size:12.5px;color:#3a4a45;margin:4px 0 8px}
+  .dur{font-size:11.5px;color:#1f5f54;font-weight:700;margin:0 0 7px}
+  .place .pl{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+  .lk{font-size:12px;text-decoration:none;border:1px solid var(--line);border-radius:8px;padding:4px 9px;color:#1f5f54;background:#f6faf8;cursor:pointer}
+  .lk:hover{background:#eaf3ef}
+  .lk.book{background:#1f5f54;color:#fff;border-color:#1f5f54;font-weight:600}
+  .star{color:#d9a300}
+  .add-place{width:100%;border:1px dashed #bcd3ca;background:#f7faf9;color:#2f7d68;border-radius:11px;padding:10px;font-weight:600;margin-top:4px}
+  .resa-list{display:flex;flex-direction:column;gap:7px}
+  .resa{display:flex;justify-content:space-between;gap:10px;align-items:center;border:1px solid var(--line);border-radius:9px;padding:8px 11px;background:#fff;font-size:13px}
+  .map-top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+  .dayfilter{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+  .chip-btn{border:1px solid var(--line);background:#fff;border-radius:16px;padding:5px 12px;font-size:12.5px;color:#50685f;cursor:pointer}
+  .chip-btn:hover{background:var(--bg)}
+  .chip-btn.on{background:#1f5f54;color:#fff;border-color:#1f5f54;font-weight:600}
+  .mode{display:inline-flex;gap:6px}
+  /* Budget params & toggles */
+  .params{display:flex;gap:10px;flex-wrap:wrap;background:#f3f7f5;border:1px solid var(--line);border-radius:11px;padding:11px 13px;margin-bottom:12px}
+  .pcell{flex:1 1 120px}
+  .pcell label{display:block;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:3px}
+  .pcell input{width:100%;border:1px solid var(--line);border-radius:8px;padding:7px 9px;font-weight:600;color:#1f5f54;background:#fff}
+  .auto{color:#7d958c;font-size:12px;font-style:italic}
+  .qpers{background:#eef4f1;border-color:#bcd3ca !important}
+  .mini2{font-size:11px;padding:3px 8px}
+  .mini2.on{background:#1f5f54;color:#fff;border-color:#1f5f54;font-weight:600}
+  .hint2{font-size:11px;color:var(--muted)}
+  .bud-total.opt{background:#b8860b}
+  .bud-total.grand{background:#10463c;font-size:17px}
+
+  /* Print */
+  @media print{
+    .topbar,.sidebar,.tabs,.day-actions,.add-day,.add-trip,.bud-actions,.modal-bg,.add-place{display:none !important}
+    body{background:#fff}
+    .main{max-width:none;padding:0}
+    .trip-head,.day,table.bud{break-inside:avoid}
+    .trip-head input{border:none}
+  }
+</style>
+</head>
+<body>
+  <div class="topbar">
+    <h1>🧭 Carnet de Voyage</h1>
+    <span class="sp"></span>
+    <button class="btn" data-act="print">Imprimer / PDF</button>
+    <button class="btn" data-act="export">Exporter</button>
+    <button class="btn" data-act="import">Importer</button>
+    <button class="btn solid" data-act="add-trip">+ Voyage</button>
+    <input type="file" id="importFile" accept="application/json" style="display:none">
+  </div>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="lbl">Mes voyages</div>
+      <div id="tripList"></div>
+      <button class="add-trip" data-act="add-trip">+ Nouveau voyage</button>
+    </aside>
+    <main class="main" id="main"></main>
+  </div>
+
+  <div class="modal-bg" id="modalBg">
+    <div class="modal" id="modal"></div>
+  </div>
+
+<script>
+"use strict";
+/* ---------- storage (robust: localStorage if available, else memory) ---------- */
+const KEY="carnetVoyage.v1";
+let mem=null;
+function load(){
+  try{const r=localStorage.getItem(KEY);if(r)return JSON.parse(r);}catch(e){}
+  if(mem)return mem;
+  return null;
+}
+function save(){
+  try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){mem=state;}
+}
+function uid(){
+  try{if(crypto&&crypto.randomUUID)return crypto.randomUUID();}catch(e){}
+  return 'id'+Math.random().toString(36).slice(2)+Date.now().toString(36);
+}
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+
+/* ---------- dates ---------- */
+const JOURS=['dimanche','lundi','mardi','mercredi','jeudi','vendredi','samedi'];
+const MOIS=['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+function frDate(s){
+  if(!s)return '';
+  const p=s.split('-');if(p.length!==3)return s;
+  const d=new Date(Number(p[0]),Number(p[1])-1,Number(p[2]));
+  if(isNaN(d))return s;
+  return JOURS[d.getDay()]+' '+d.getDate()+' '+MOIS[d.getMonth()];
+}
+function euro(n){const v=Math.round((Number(n)||0));return v.toLocaleString('fr-FR')+' €';}
+function fmtDur(s){s=Math.round((Number(s)||0)/60);const h=Math.floor(s/60),m=s%60;return h?(h+' h '+(m<10?'0':'')+m):(m+' min');}
+
+/* ---------- country colors ---------- */
+const COUNTRIES=['France','Suisse','Allemagne','Italie','Espagne','Autre'];
+const COLOR={France:'#2f7d68',Suisse:'#c0392b',Allemagne:'#b8860b',Italie:'#2f7d68',Espagne:'#c98a1b',Autre:'#5a6b8c'};
+function color(c){return COLOR[c]||'#5a6b8c';}
+
+/* ---------- seed: Remoray ---------- */
+function seed(){
+  const t={
+    id:uid(),title:'Lac de Remoray',subtitle:'5 jours entre France, Suisse & Allemagne',
+    start:'2026-08-10',end:'2026-08-15',base:'Camping du Lac de Remoray · Labergement-Sainte-Marie',
+    days:[
+      {id:uid(),date:'2026-08-10',country:'France',title:'Arrivée & les deux lacs',
+       segs:[{w:'Après-midi',t:'Installation au camping, sentier du lac de Remoray (réserve naturelle), Maison de la Réserve.'},
+             {w:'Fin de journée',t:'Baignade au lac de Saint-Point, plage de Malbuisson.'},
+             {w:'Soir',t:'Dîner tranquille, repérage des courses.'}],
+       variante:'',eat:'',tip:'Faire le plein de Comté et de saucisse de Morteau pour les pique-niques.',trajets:'Lac de Remoray sur place · Malbuisson 5 min.',route:['base','reserve','stpoint']},
+      {id:uid(),date:'2026-08-11',country:'Suisse',title:'Neuchâtel : ville & cigares',
+       segs:[{w:'Matin',t:'Vieille ville médiévale : ruelles, fontaines, château, collégiale, vue lac.'},
+             {w:'Cigares',t:'Pattus Tabacs, rue Saint-Maurice 2 — cave à cigares (mardi 9h30–13h30 / 14h–18h30).'},
+             {w:'Midi',t:'Déjeuner sur les quais.'},
+             {w:'Après-midi',t:'Quais, passerelle, bateau sur le lac, ou Laténium. Baignade possible.'}],
+       variante:'La Chaux-de-Fonds — ville horlogère UNESCO (~1h).',
+       eat:'Fondue & spécialités au centre : La Taverne Neuchâteloise (réserver) ou Le Cardinal (Seyon 9). Éco : pique-nique sur les quais. Prévoir des CHF.',
+       tip:'Carte d’identité + un peu de francs suisses.',trajets:'~1h aller jusqu’à Neuchâtel.',route:['base','neuchatel']},
+      {id:uid(),date:'2026-08-12',country:'France',title:'Le toit du Doubs : Mont d’Or',
+       segs:[{w:'Matin',t:'Métabief, télésiège du Morond puis crêtes jusqu’au Mont d’Or (1 463 m), panorama Mont Blanc.'},
+             {w:'Midi',t:'Pique-nique sur les crêtes ou restaurant à Métabief.'},
+             {w:'Après-midi (au choix)',t:'Accrobranche forêt de Malbuisson, paddle/baignade au lac Saint-Point, ou fruitière à Comté.'}],
+       variante:'',eat:'',tip:'En altitude il fait frais : polaire + chaussures. Vérifier les horaires du télésiège.',trajets:'Métabief 10–15 min · Malbuisson 5 min.',route:['base','montdor']},
+      {id:uid(),date:'2026-08-13',country:'Suisse',title:'Gruyères : fromage & château',
+       segs:[{w:'Matin',t:'Route vers Gruyères (~1h30). La Maison du Gruyère (fabrication du fromage AOP, expo interactive), puis la cité médiévale et son château (XIe siècle, panorama). Ados : musée HR Giger, créateur d’Alien.'},
+             {w:'Midi',t:'Déjeuner à Gruyères : fondue moitié-moitié et spécialités.'},
+             {w:'Après-midi',t:'Au choix : chocolaterie Maison Cailler à Broc (10 min, dégustation), la montagne du Moléson (télécabine, luge d’été, via ferrata), ou flânerie dans la cité.'},
+             {w:'Soir',t:'Retour au camping (~1h30).'}],
+       variante:'Envie de lac ? Château de Chillon + Montreux (~45 min de Gruyères) — mais ça fait une grosse journée.',
+       eat:'Fondue et spécialités dans la vieille ville de Gruyères ; terrasses face au château.',
+       tip:'Carte d’identité + CHF. La vignette suisse (40 CHF) raccourcit la route par l’autoroute. Le DayPass La Gruyère combine fromagerie + château + Cailler.',trajets:'Gruyères ~1h30 aller · Cailler/Broc 10 min · retour ~1h30.',route:['base','maisongruyere','chgruyere']},
+      {id:uid(),date:'2026-08-14',country:'France',title:'Saut du Doubs & Gorges du Doubs',
+       segs:[{w:'Matin',t:'Saut du Doubs : croisière sur le lac de Chaillexon (cascade de 27 m) — ou location kayak/paddle sans permis (base de Chaillexon).'},
+             {w:'Midi',t:'Déjeuner à Morteau (saucisse).'},
+             {w:'Après-midi',t:'Belvédères des Gorges du Doubs (Échelles de la Mort).'},
+             {w:'Soir',t:'Dernier coucher de soleil et dîner d’au revoir au camping.'}],
+       variante:'Variante gourmande : fruitière à Comté du côté de Morteau.',eat:'',tip:'',trajets:'Saut du Doubs (Villers-le-Lac) ~45 min · Morteau ~40 min.',route:['base','saut','morteau','gorges']},
+      {id:uid(),date:'2026-08-15',country:'France',title:'Départ',
+       segs:[{w:'Matin',t:'Rangement, dernier petit-déjeuner face au lac, départ. 15 août férié : anticiper le trafic.'}],
+       variante:'',eat:'',tip:'',trajets:'',route:['base']}
+    ],
+    budget:[
+      {id:uid(),cat:'Nourriture',label:'Courses (pique-niques, dîners)',qty:6,pu:33,note:'≈ €/jour',per:'group'},
+      {id:uid(),cat:'Nourriture',label:'Restaurants & gourmandises',qty:4,pu:20,note:'1–2 sorties',per:'person'},
+      {id:uid(),cat:'Carburant',label:'Carburant',qty:0,pu:0,note:'calculé : km ÷ 100 × conso × prix',auto:'fuel'},
+      {id:uid(),cat:'Activités',label:'Maison de la Réserve',qty:4,pu:5.75,note:'',per:'person'},
+      {id:uid(),cat:'Activités',label:'Bateau du Saut du Doubs',qty:4,pu:16,note:'',per:'person'},
+      {id:uid(),cat:'Activités',label:'Gruyères — entrées',qty:4,pu:13,note:'fromagerie + château',per:'person'},
+      {id:uid(),cat:'Achats',label:'Cigares (Pattus Tabacs)',qty:1,pu:50,note:'',per:'group'},
+      {id:uid(),cat:'Achats',label:'Comté & spécialités',qty:1,pu:30,note:'',per:'group'},
+      {id:uid(),cat:'Frais de route',label:'Parkings',qty:1,pu:30,note:'',per:'group'},
+      {id:uid(),cat:'Option',label:'Télésiège du Morond',qty:4,pu:9,note:'sinon montée à pied',per:'person',opt:true},
+      {id:uid(),cat:'Option',label:'Tour du Münster + funiculaire (Fribourg)',qty:4,pu:6,note:'',per:'person',opt:true},
+      {id:uid(),cat:'Option',label:'Accrobranche Malbuisson',qty:4,pu:22,note:'',per:'person',opt:true},
+      {id:uid(),cat:'Option',label:'Croisière lac de Neuchâtel',qty:4,pu:15,note:'',per:'person',opt:true},
+      {id:uid(),cat:'Option',label:'Musée Laténium (Neuchâtel)',qty:4,pu:9,note:'',per:'person',opt:true},
+      {id:uid(),cat:'Option',label:'Vignette autoroute suisse',qty:1,pu:42,note:'si autoroute CH',per:'group',opt:true}
+    ],
+    params:{people:4,km:650,conso:7,fuel:1.95},
+    places:[
+      {id:'base',name:'Camping du Lac de Remoray',country:'France',lat:46.7717,lng:6.2731,must:false,see:'Camp de base, entre le lac de Remoray (réserve naturelle) et le lac de Saint-Point.',book:''},
+      {id:'reserve',name:'Maison de la Réserve',country:'France',lat:46.7660,lng:6.2720,must:false,see:'Expo nature ; l’une des avifaunes les plus riches de France.',book:'https://www.maisondelareserve.fr/'},
+      {id:'stpoint',name:'Lac de Saint-Point · Malbuisson',country:'France',lat:46.7972,lng:6.2986,must:false,see:'Baignade, paddle, plage. Bateaux électriques sans permis (Le Spot).',book:'https://www.doubs.travel/activites-adrenaline/le-spot-du-lac-saint-point'},
+      {id:'montdor',name:'Mont d’Or (Métabief)',country:'France',lat:46.7625,lng:6.3000,must:true,see:'Panorama sur 300 sommets alpins, Mont Blanc compris. Télésiège du Morond ou montée à pied.',book:'https://www.station-metabief.com/'},
+      {id:'neuchatel',name:'Neuchâtel (vieille ville · Pattus Tabacs)',country:'Suisse',lat:46.9920,lng:6.9300,must:true,see:'Vieille ville médiévale, château, collégiale, quais. Cigares chez Pattus Tabacs ; croisière sur le lac.',book:'https://www.navig.ch/'},
+      {id:'maisongruyere',name:'La Maison du Gruyère (Pringy)',country:'Suisse',lat:46.5847,lng:7.0686,must:false,see:'Fabrication du Gruyère AOP, expo interactive et fromagerie en activité.',book:'https://www.lamaisondugruyere.ch/'},
+      {id:'chgruyere',name:'Gruyères · cité & château',country:'Suisse',lat:46.5826,lng:7.0822,must:true,see:'Cité médiévale, château du XIe siècle et panorama ; musée HR Giger (Alien) sur place.',book:'https://www.chateau-gruyeres.ch/'},
+      {id:'cailler',name:'Maison Cailler (Broc)',country:'Suisse',lat:46.6045,lng:7.0995,must:false,see:'Chocolaterie : histoire du chocolat suisse et dégustation.',book:'https://cailler.ch/'},
+      {id:'saut',name:'Saut du Doubs (Villers-le-Lac)',country:'France',lat:47.0625,lng:6.6680,must:true,see:'Croisière jusqu’à la cascade de 27 m, ou kayak/paddle sans permis.',book:'https://www.sautdudoubs.fr/'},
+      {id:'kayak',name:'Kayak / paddle · base de Chaillexon',country:'France',lat:47.0600,lng:6.6620,must:false,see:'Location canoë, kayak, paddle pour pagayer les Bassins du Doubs.',book:'https://ckvillerslelac.fr/'},
+      {id:'morteau',name:'Morteau',country:'France',lat:47.0570,lng:6.6060,must:false,see:'Vieille ville, capitale de la saucisse.',book:''},
+      {id:'gorges',name:'Gorges du Doubs · Échelles de la Mort',country:'France',lat:47.1540,lng:6.8760,must:false,see:'Belvédères plongeants sur le Doubs frontière.',book:''}
+    ],
+    trajets:[
+      {from:'base',to:'neuchatel'},{from:'base',to:'titisee'},{from:'titisee',to:'fribourg'},
+      {from:'base',to:'saut'},{from:'base',to:'montdor'}
+    ]
+  };
+  return {trips:[t],selectedId:t.id,tab:'programme'};
+}
+/* migration : réinjecte les champs ajoutés après une 1re sauvegarde (lieux, carte…) sans rien effacer */
+function migrate(s){
+  let sd=null;
+  (s.trips||[]).forEach(t=>{
+    if(!Array.isArray(t.places))t.places=[];
+    if(!Array.isArray(t.trajets))t.trajets=[];
+    if(!Array.isArray(t.budget))t.budget=[];
+    const hadParams=!!t.params; if(!t.params)t.params=defParams();
+    (t.days||[]).forEach(d=>{if(!Array.isArray(d.segs))d.segs=[];if(!Array.isArray(d.route))d.route=[];});
+    if(t.title==='Lac de Remoray'){
+      if(!sd)sd=seed().trips[0];
+      if(t.places.length===0){t.places=sd.places;t.trajets=sd.trajets;}
+      const byDate={};(sd.days||[]).forEach(x=>{byDate[x.date]=x.route;});
+      (t.days||[]).forEach(d=>{if(!d.route||d.route.length===0)d.route=(byDate[d.date]||[]).slice();});
+      if(!hadParams)t.params=Object.assign({},sd.params);
+      const j4=(t.days||[]).find(d=>d.date==='2026-08-13');
+      if(j4&&(/Titisee|Forêt-Noire|Fribourg|Allemagne|Chillon/i.test((j4.title||'')+' '+(j4.country||''))||(j4.route||[]).indexOf('chillon')>-1||(j4.route||[]).indexOf('montreux')>-1)){
+        const sj4=sd.days.find(d=>d.date==='2026-08-13');
+        if(sj4){j4.title=sj4.title;j4.country=sj4.country;j4.segs=JSON.parse(JSON.stringify(sj4.segs));j4.variante=sj4.variante;j4.eat=sj4.eat;j4.tip=sj4.tip;j4.trajets=sj4.trajets;j4.route=sj4.route.slice();}
+      }
+      t.places=(t.places||[]).filter(p=>['titisee','fribourg','chillon','montreux'].indexOf(p.id)<0);
+      ['maisongruyere','chgruyere','cailler'].forEach(id=>{if(!t.places.find(p=>p.id===id)){const sp2=sd.places.find(p=>p.id===id);if(sp2)t.places.push(Object.assign({},sp2));}});
+      (t.days||[]).forEach(d=>{d.route=(d.route||[]).filter(id=>['titisee','fribourg','chillon','montreux'].indexOf(id)<0);});
+      (t.budget||[]).forEach(b=>{
+        if(b.label==='Carburant (~650 km)'){b.label='Carburant';b.auto='fuel';b.cat='Carburant';}
+        if(b.label==='Titisee — baignade / pédalo'||b.label==='Gruyères & Chillon — entrées'){b.label='Gruyères — entrées';b.cat='Activités';b.per='person';if(Number(b.qty)<2)b.qty=Number(t.params&&t.params.people)||4;if(!Number(b.pu)||Number(b.pu)===22)b.pu=13;b.note='fromagerie + château';}
+      });
+      const have={};(t.budget||[]).forEach(b=>{have[b.label]=b;});
+      (sd.budget||[]).forEach(sb=>{const b=have[sb.label];
+        if(b){if(sb.per)b.per=sb.per;if(sb.opt)b.opt=true;if(sb.auto)b.auto=sb.auto;if(sb.cat==='Option')b.cat='Option';}
+        else t.budget.push(Object.assign({},sb,{id:uid()}));});
+    }
+  });
+  return s;
+}
+
+/* ---------- state ---------- */
+let state=load();
+if(!state||!state.trips){state=seed();}else{migrate(state);}
+if(!state.tab)state.tab='programme';
+if(state.dayFilter==null)state.dayFilter='all';
+if(!state.mapMode)state.mapMode='live';
+if(state.avoidToll==null)state.avoidToll=true;
+save();
+
+function currentTrip(){return state.trips.find(t=>t.id===state.selectedId)||state.trips[0];}
+
+/* ---------- render ---------- */
+function render(){
+  renderSidebar();
+  renderMain();
+}
+function renderSidebar(){
+  const el=document.getElementById('tripList');
+  el.innerHTML=state.trips.map(t=>`
+    <button class="trip-item ${t.id===state.selectedId?'active':''}" data-act="select" data-id="${t.id}">
+      <div class="t">${esc(t.title||'Sans titre')}</div>
+      <div class="d">${t.start?frDate(t.start):''}${t.end?' → '+frDate(t.end):''}</div>
+    </button>`).join('');
+}
+function renderMain(){
+  const t=currentTrip();
+  const main=document.getElementById('main');
+  if(!t){main.innerHTML='<div class="empty">Aucun voyage. Cliquez sur « + Voyage » pour commencer.</div>';return;}
+  main.innerHTML=`
+    <div class="trip-head">
+      <input class="title-in" data-field="title" value="${esc(t.title)}" placeholder="Titre du voyage">
+      <input class="sub-in" data-field="subtitle" value="${esc(t.subtitle)}" placeholder="Sous-titre (ex. 5 jours entre France et Suisse)">
+      <div class="meta-row">
+        <div class="field"><label>Du</label><input type="date" data-field="start" value="${esc(t.start)}"></div>
+        <div class="field"><label>Au</label><input type="date" data-field="end" value="${esc(t.end)}"></div>
+        <div class="field" style="flex:1 1 240px"><label>Base / hébergement</label><input type="text" data-field="base" value="${esc(t.base)}" placeholder="Camping, hôtel…"></div>
+        <button class="mini danger" data-act="del-trip" data-id="${t.id}" title="Supprimer ce voyage">Supprimer le voyage</button>
+      </div>
+    </div>
+    <div class="tabs">
+      <button class="tab ${state.tab==='programme'?'active':''}" data-act="tab" data-tab="programme">Programme</button>
+      <button class="tab ${state.tab==='carte'?'active':''}" data-act="tab" data-tab="carte">Carte &amp; réservations</button>
+      <button class="tab ${state.tab==='budget'?'active':''}" data-act="tab" data-tab="budget">Budget</button>
+    </div>
+    ${state.tab==='programme'?renderProgramme(t):state.tab==='budget'?renderBudget(t):renderCarte(t)}`;
+  if(state.tab==='carte')setTimeout(()=>initMap(currentTrip()),0);
+}
+function renderProgramme(t){
+  const days=(t.days||[]).map((d,i)=>dayCard(d,i,t.days.length)).join('');
+  return `${days||'<div class="empty">Aucune journée pour l’instant.</div>'}
+    <button class="add-day" data-act="add-day">+ Ajouter une journée</button>`;
+}
+function dayCard(d,i,n){
+  const c=color(d.country);
+  const segs=(d.segs||[]).filter(s=>s.w||s.t).map(s=>`
+    <div class="seg"><div class="when">${esc(s.w)}</div><div class="what">${esc(s.t)}</div></div>`).join('');
+  return `
+  <div class="day" style="--accent:${c}">
+    <div class="day-head">
+      <div class="lft">
+        <span class="badge">JOUR ${i+1}</span>
+        <div><div class="day-title">${esc(d.title||'Journée')}</div>
+        <div class="day-date">${frDate(d.date)}</div></div>
+      </div>
+      <span class="flag">${esc(d.country||'')}</span>
+    </div>
+    <div class="segs">${segs}</div>
+    ${d.variante?`<div class="box variante"><b>Variante :</b> ${esc(d.variante)}</div>`:''}
+    ${d.eat?`<div class="box eat"><b>Où manger :</b> ${esc(d.eat)}</div>`:''}
+    ${d.tip?`<div class="box tip"><b>Bon à savoir :</b> ${esc(d.tip)}</div>`:''}
+    ${d.trajets?`<div class="trajets"><b>Trajets :</b> ${esc(d.trajets)}</div>`:''}
+    <div class="day-actions">
+      <button class="mini" data-act="edit-day" data-id="${d.id}">✎ Éditer</button>
+      <button class="mini" data-act="up" data-id="${d.id}" ${i===0?'disabled':''}>↑</button>
+      <button class="mini" data-act="down" data-id="${d.id}" ${i===n-1?'disabled':''}>↓</button>
+      <button class="mini danger" data-act="del-day" data-id="${d.id}">Supprimer</button>
+    </div>
+  </div>`;
+}
+function defParams(){return {people:2,km:0,conso:7,fuel:1.95};}
+function rowTotal(b,pm){
+  if(b.auto==='fuel')return Math.round(((Number(pm.km)||0)/100)*(Number(pm.conso)||0)*(Number(pm.fuel)||0));
+  return (Number(b.qty)||0)*(Number(b.pu)||0);
+}
+function renderBudget(t){
+  const pm=t.params||(t.params=defParams());
+  const litres=((Number(pm.km)||0)/100*(Number(pm.conso)||0)).toFixed(0);
+  const row=b=>{const auto=b.auto==='fuel',per=b.per==='person';
+    return `<tr data-id="${b.id}">
+      <td><input data-bfield="cat" value="${esc(b.cat)}"></td>
+      <td><input data-bfield="label" value="${esc(b.label)}"></td>
+      <td class="num" style="width:78px">${auto?`<span class="auto auto-q">${litres} L</span>`:`<input class="${per?'qpers':''}" data-bfield="qty" type="number" step="any" min="0" value="${esc(b.qty)}" title="${per?'Nombre de participants':'Quantité'}">`}</td>
+      <td class="num" style="width:84px">${auto?`<span class="auto auto-p">${esc(pm.fuel)}</span>`:`<input data-bfield="pu" type="number" step="any" value="${esc(b.pu)}">`}</td>
+      <td class="tot">${euro(rowTotal(b,pm))}</td>
+      <td style="width:48px;text-align:center">${auto?'':`<button class="mini mini2 ${per?'on':''}" data-act="bud-per" data-id="${b.id}" title="Multiplier par le nombre de voyageurs">×pers</button>`}</td>
+      <td style="width:54px;text-align:center"><button class="mini mini2 ${b.opt?'on':''}" data-act="bud-opt" data-id="${b.id}" title="Dépense optionnelle">option</button></td>
+      <td><input data-bfield="note" value="${esc(b.note)}" placeholder="note"></td>
+      <td style="width:30px"><button class="mini danger" data-act="del-bud" data-id="${b.id}">✕</button></td>
+    </tr>`;};
+  const rows=(t.budget||[]).map(row).join('');
+  const base=(t.budget||[]).filter(b=>!b.opt).reduce((s,b)=>s+rowTotal(b,pm),0);
+  const opt=(t.budget||[]).filter(b=>b.opt).reduce((s,b)=>s+rowTotal(b,pm),0);
+  return `
+    <div class="params">
+      <div class="pcell"><label>Voyageurs (défaut)</label><input data-pfield="people" type="number" min="1" step="1" value="${esc(pm.people)}"></div>
+      <div class="pcell" style="display:flex;align-items:flex-end"><button class="mini" data-act="apply-people" title="Mettre ce nombre de participants sur toutes les activités « ×pers »">↻ Appliquer à tout</button></div>
+      <div class="pcell"><label>Distance (km)</label><input data-pfield="km" type="number" step="any" value="${esc(pm.km)}"></div>
+      <div class="pcell"><label>Conso (L/100)</label><input data-pfield="conso" type="number" step="any" value="${esc(pm.conso)}"></div>
+      <div class="pcell"><label>Prix (€/L)</label><input data-pfield="fuel" type="number" step="any" value="${esc(pm.fuel)}"></div>
+    </div>
+    <div class="bud-actions"><button class="mini" data-act="add-bud">+ Ajouter une ligne</button> <span class="hint2">Coche « ×pers » pour une activité par personne, puis ajuste le <b>nombre de participants</b> dans « Qté ». « option » = hors total de base. Carburant calculé depuis les paramètres.</span></div>
+    <table class="bud">
+      <thead><tr><th>Catégorie</th><th>Poste</th><th>Qté</th><th>PU (€)</th><th>Total</th><th>/pers</th><th>Option</th><th>Note</th><th></th></tr></thead>
+      <tbody>${rows||'<tr><td colspan="9" style="color:#7d958c;padding:14px">Aucune ligne. Ajoutez vos dépenses.</td></tr>'}</tbody>
+    </table>
+    <div class="bud-total"><span>Total de base</span><span class="bt-base">${euro(base)}</span></div>
+    <div class="bud-total opt"><span>+ Options</span><span class="bt-opt">${euro(opt)}</span></div>
+    <div class="bud-total grand"><span>Total avec options</span><span class="bt-grand">${euro(base+opt)}</span></div>`;
+}
+function recalcBudget(){
+  const t=currentTrip();const pm=t.params||defParams();
+  const litres=((Number(pm.km)||0)/100*(Number(pm.conso)||0)).toFixed(0);
+  let base=0,opt=0;
+  (t.budget||[]).forEach(b=>{const tot=rowTotal(b,pm);if(b.opt)opt+=tot;else base+=tot;
+    const tr=document.querySelector('tr[data-id="'+b.id+'"]');if(!tr)return;
+    const tc=tr.querySelector('.tot');if(tc)tc.textContent=euro(tot);
+    const q=tr.querySelector('.auto-q');if(q&&b.auto==='fuel')q.textContent=litres+' L';
+    const pp=tr.querySelector('.auto-p');if(pp)pp.textContent=pm.fuel;});
+  const set=(sel,v)=>{const e=document.querySelector(sel);if(e)e.textContent=euro(v);};
+  set('.bt-base',base);set('.bt-opt',opt);set('.bt-grand',base+opt);
+}
+
+/* ---------- carte & lieux ---------- */
+let _map=null;
+let editingPlaceId=null;
+function renderCarte(t){
+  const places=t.places||[];const df=state.dayFilter;
+  const placeRows=places.map(p=>placeCard(p,t)).join('');
+  const resa=places.filter(p=>p.book);
+  const resaRows=resa.map(p=>`
+    <div class="resa"><span><b>${esc(p.name)}</b></span>
+      <a class="lk book" target="_blank" rel="noopener" href="${esc(p.book)}">Réserver / billets ↗</a></div>`).join('');
+  const dayBtns=`<button class="chip-btn ${(df==null||df==='all')?'on':''}" data-act="dayfilter" data-day="all">Tous</button>`+
+    (t.days||[]).map((d,i)=>`<button class="chip-btn ${df===i?'on':''}" data-act="dayfilter" data-day="${i}">J${i+1}</button>`).join('');
+  const dayRoutes=(t.days||[]).map((d,i)=>dayRouteCard(d,i,t)).join('');
+  return `
+    <div class="map-top">
+      <a class="lk book" target="_blank" rel="noopener" href="${mapsAll(t)}">Ouvrir tous les lieux dans Google Maps ↗</a>
+      <span class="mode"><button class="chip-btn ${state.avoidToll?'on':''}" data-act="toll" title="Calculer les itinéraires sans route à péage">Sans péage</button><button class="chip-btn ${state.mapMode!=='schema'?'on':''}" data-act="mapmode" data-mode="live">Carte</button><button class="chip-btn ${state.mapMode==='schema'?'on':''}" data-act="mapmode" data-mode="schema">Schéma</button></span>
+    </div>
+    <div class="dayfilter">${dayBtns}</div>
+    <div id="map"></div>
+    <div class="legend">
+      <span class="k"><span class="dot" style="background:#2f7d68"></span>France</span>
+      <span class="k"><span class="dot" style="background:#c0392b"></span>Suisse</span>
+      <span class="k"><span class="dot" style="background:#b8860b"></span>Allemagne</span>
+      <span class="k"><span class="star">★</span> à voir absolument</span>
+    </div>
+    <div class="sec-title">Trajets par jour</div>
+    ${dayRoutes||'<div class="empty">Aucune journée.</div>'}
+    <div class="sec-title">Lieux &amp; à voir</div>
+    ${placeRows||'<div class="empty">Aucun lieu.</div>'}
+    <button class="add-place" data-act="add-place">+ Ajouter un lieu</button>
+    <div class="sec-title">Réservations &amp; billets</div>
+    <div class="resa-list">${resaRows||'<div class="empty">Aucun lien de réservation.</div>'}</div>`;
+}
+function placeCard(p,t){
+  const c=color(p.country);
+  const base=(t.places||[]).find(x=>x.id==='base')||{};
+  const dir=(p.lat&&base.lat)?`https://www.google.com/maps/dir/?api=1&origin=${base.lat},${base.lng}&destination=${p.lat},${p.lng}`:'';
+  const maps=(p.lat)?`https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}`:'';
+  return `
+  <div class="place" style="--accent:${c}">
+    <div class="ph"><span class="pn">${p.must?'<span class="star">★</span> ':''}${esc(p.name)}</span><span class="pc">${esc(p.country)}</span></div>
+    ${p.see?`<div class="ps">${esc(p.see)}</div>`:''}
+    <div class="pl">
+      ${p.book?`<a class="lk book" target="_blank" rel="noopener" href="${esc(p.book)}">Réserver ↗</a>`:''}
+      ${dir?`<a class="lk" target="_blank" rel="noopener" href="${dir}">Itinéraire ↗</a>`:''}
+      ${maps?`<a class="lk" target="_blank" rel="noopener" href="${maps}">Voir sur Maps ↗</a>`:''}
+      <button class="lk" data-act="edit-place" data-id="${p.id}">✎</button>
+      <button class="lk" data-act="del-place" data-id="${p.id}">✕</button>
+    </div>
+  </div>`;
+}
+function mapsAll(t){
+  const ps=(t.places||[]).filter(p=>p.lat&&p.lng&&(p.must||p.id==='base'));
+  if(ps.length<2)return 'https://www.google.com/maps';
+  const base=ps.find(p=>p.id==='base'),rest=ps.filter(p=>p.id!=='base');
+  const origin=base||rest.shift(),dest=rest[rest.length-1];
+  const wp=rest.slice(0,-1).map(p=>p.lat+','+p.lng).join('|');
+  let u='https://www.google.com/maps/dir/?api=1&origin='+origin.lat+','+origin.lng+'&destination='+dest.lat+','+dest.lng;
+  if(wp)u+='&waypoints='+encodeURIComponent(wp);
+  return u;
+}
+const DAYCOLORS=['#2f7d68','#c0392b','#2b6cb0','#b8860b','#8e44ad','#e07b39','#16a085'];
+function shortName(n){return String(n).split('·')[0].split('(')[0].trim();}
+function routeSegs(t){const segs=[];(t.days||[]).forEach((d,i)=>{const r=d.route||[];for(let k=0;k<r.length-1;k++)segs.push({from:r[k],to:r[k+1],day:i});});return segs;}
+function visibleSegs(t){const df=state.dayFilter;const all=routeSegs(t);return (df==null||df==='all')?all:all.filter(s=>s.day===df);}
+var _routeCache={};
+function fetchRoute(coords){
+  var key=coords.map(function(c){return c[0].toFixed(4)+','+c[1].toFixed(4);}).join(';');
+  if(_routeCache[key])return Promise.resolve(_routeCache[key]);
+  if(typeof fetch==='undefined')return Promise.reject('no-fetch');
+  var base='https://router.project-osrm.org/route/v1/driving/'+coords.map(function(c){return c[1]+','+c[0];}).join(';')+'?overview=full&geometries=geojson';
+  function ok(j){return j&&j.routes&&j.routes[0]&&j.routes[0].geometry;}
+  var first=state.avoidToll
+    ? fetch(base+'&exclude=toll').then(function(r){return r.json();}).then(function(j){return ok(j)?j:fetch(base).then(function(r){return r.json();});})
+    : fetch(base).then(function(r){return r.json();});
+  return first.then(function(j){
+    if(ok(j)){var r=j.routes[0];var res={geom:r.geometry.coordinates.map(function(c){return [c[1],c[0]];}),duration:r.duration,distance:r.distance};_routeCache[key]=res;return res;}
+    throw new Error('no-route');
+  });
+}
+/* Optimise l'ordre des étapes d'une journée (plus court temps/km) via OSRM trip, départ = camping */
+function optimizeDay(t,di){
+  const d=t.days&&t.days[di]; if(!d)return Promise.resolve();
+  let pts=(d.route||[]).map(id=>{const p=(t.places||[]).find(x=>x.id===id);return (p&&typeof p.lat==='number'&&typeof p.lng==='number')?{id:id,lat:p.lat,lng:p.lng}:null;}).filter(Boolean);
+  if(pts.length<3||typeof fetch==='undefined')return Promise.resolve();
+  pts.sort((a,b)=>(a.id==='base'?-1:b.id==='base'?1:0));
+  const base='https://router.project-osrm.org/trip/v1/driving/'+pts.map(p=>p.lng+','+p.lat).join(';')+'?source=first&roundtrip=false&overview=false';
+  const okJ=j=>j&&j.code==='Ok'&&j.waypoints&&j.waypoints.length===pts.length;
+  const first=state.avoidToll?fetch(base+'&exclude=toll').then(r=>r.json()).then(j=>okJ(j)?j:fetch(base).then(r=>r.json())):fetch(base).then(r=>r.json());
+  return first.then(j=>{
+    if(okJ(j)){
+      const ordered=pts.map((p,i)=>({id:p.id,k:j.waypoints[i].waypoint_index})).sort((a,b)=>a.k-b.k).map(o=>o.id);
+      const rest=(d.route||[]).filter(id=>ordered.indexOf(id)<0);
+      d.route=ordered.concat(rest);save();
+    }
+  }).catch(()=>{});
+}
+function dayRouteUrl(d,t){
+  const pts=(d.route||[]).map(id=>(t.places||[]).find(x=>x.id===id)).filter(p=>p&&p.lat&&p.lng);
+  if(!pts.length)return '';
+  if(pts.length===1)return 'https://www.google.com/maps/search/?api=1&query='+pts[0].lat+','+pts[0].lng;
+  const o=pts[0],de=pts[pts.length-1],wp=pts.slice(1,-1).map(p=>p.lat+','+p.lng).join('|');
+  let u='https://www.google.com/maps/dir/?api=1&origin='+o.lat+','+o.lng+'&destination='+de.lat+','+de.lng;
+  if(wp)u+='&waypoints='+encodeURIComponent(wp);return u;
+}
+function dayRouteCard(d,i,t){
+  const names=(d.route||[]).map(id=>{const p=(t.places||[]).find(x=>x.id===id);return p?shortName(p.name):null;}).filter(Boolean);
+  const url=dayRouteUrl(d,t);
+  return `<div class="place" style="--accent:${DAYCOLORS[i%DAYCOLORS.length]}">
+    <div class="ph"><span class="pn">Jour ${i+1} · ${esc(d.title||'')}</span><span class="pc" style="background:${color(d.country)}">${esc(d.country||'')}</span></div>
+    <div class="ps">${names.length?esc(names.join('   →   ')):'<i>Pas d’étape — modifiez la journée pour ajouter des lieux.</i>'}</div>
+    <div class="dur" id="dur-${i}"></div>
+    <div class="pl">
+      ${url?`<a class="lk book" target="_blank" rel="noopener" href="${url}">Itinéraire du jour ↗</a>`:''}
+      <button class="lk" data-act="dayfilter" data-day="${i}">Voir sur la carte</button>
+      ${(d.route||[]).length>=3?`<button class="lk" data-act="opt-day" data-day="${i}">Optimiser l’ordre ↻</button>`:''}
+    </div>
+  </div>`;
+}
+function initMap(t){
+  const el=document.getElementById('map');if(!el)return;
+  if(state.mapMode==='schema'||typeof L==='undefined'){el.style.height='auto';el.innerHTML=svgMap(t);return;}
+  el.style.height='430px';el.innerHTML='';
+  if(_map){try{_map.remove();}catch(e){}_map=null;}
+  const places=(t.places||[]).filter(p=>p.lat&&p.lng);
+  _map=L.map(el);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:18,attribution:'© OpenStreetMap'}).addTo(_map);
+  const pts=[];
+  places.forEach(p=>{const m=L.circleMarker([p.lat,p.lng],{radius:p.id==='base'?9:7,color:'#fff',weight:2,fillColor:color(p.country),fillOpacity:.95}).addTo(_map);
+    const mp='https://www.google.com/maps/search/?api=1&query='+p.lat+','+p.lng;
+    m.bindPopup('<b>'+esc(p.name)+'</b><br><span style="color:#555">'+esc(p.see||'')+'</span><br>'+(p.book?'<a href="'+esc(p.book)+'" target="_blank" rel="noopener">Réserver ↗</a> · ':'')+'<a href="'+mp+'" target="_blank" rel="noopener">Maps ↗</a>');
+    pts.push([p.lat,p.lng]);});
+  const days=t.days||[];
+  const show=(state.dayFilter==null||state.dayFilter==='all')?days.map((d,i)=>i):[state.dayFilter];
+  days.forEach((d,i)=>{
+    const coords=(d.route||[]).map(id=>places.find(p=>p.id===id)).filter(Boolean).map(p=>[p.lat,p.lng]);
+    const durEl=document.getElementById('dur-'+i);
+    if(coords.length<2){if(durEl)durEl.textContent='';return;}
+    if(durEl)durEl.textContent='Calcul de l’itinéraire…';
+    const col=DAYCOLORS[i%DAYCOLORS.length];
+    const draw=show.indexOf(i)>-1;
+    let ph=null;
+    if(draw)ph=L.polyline(coords,{color:col,weight:2,opacity:.4,dashArray:'5,7'}).addTo(_map);
+    fetchRoute(coords).then(res=>{
+      if(draw&&_map){try{_map.removeLayer(ph);}catch(e){}L.polyline(res.geom,{color:col,weight:4,opacity:.82}).addTo(_map);}
+      const el=document.getElementById('dur-'+i);if(el)el.textContent='≈ '+fmtDur(res.duration)+' · '+Math.round(res.distance/1000)+' km'+(state.avoidToll?' (sans péage)':'');
+    }).catch(()=>{if(durEl)durEl.textContent='Itinéraire indisponible (réseau)';});
+  });
+  if(pts.length)_map.fitBounds(pts,{padding:[28,28]});else _map.setView([46.9,6.6],8);
+  const fix=()=>{try{_map.invalidateSize();if(pts.length)_map.fitBounds(pts,{padding:[28,28]});}catch(e){}};
+  [60,250,600].forEach(ms=>setTimeout(fix,ms));if(window.requestAnimationFrame)requestAnimationFrame(fix);
+  if(!window.__mr){window.__mr=true;window.addEventListener('resize',()=>{if(_map){try{_map.invalidateSize();}catch(e){}}});}
+}
+function svgMap(t){
+  const ps=(t.places||[]).filter(p=>typeof p.lat==='number'&&typeof p.lng==='number'&&!isNaN(p.lat)&&!isNaN(p.lng));
+  if(!ps.length)return '<div class="map-fallback">Ajoutez des lieux avec coordonnées (latitude / longitude) pour afficher la carte.</div>';
+  const W=820,H=440,pad=58;
+  const lats=ps.map(p=>p.lat),lngs=ps.map(p=>p.lng);
+  const minLa=Math.min.apply(null,lats),maxLa=Math.max.apply(null,lats),minLo=Math.min.apply(null,lngs),maxLo=Math.max.apply(null,lngs);
+  const kx=Math.cos(((minLa+maxLa)/2)*Math.PI/180);
+  const rx=((maxLo-minLo)*kx)||0.001, ry=(maxLa-minLa)||0.001;
+  const sc=Math.min((W-2*pad)/rx,(H-2*pad)/ry);
+  const ox=(W-rx*sc)/2, oy=(H-ry*sc)/2;
+  const X=p=>ox+((p.lng-minLo)*kx)*sc;
+  const Y=p=>oy+(maxLa-p.lat)*sc;
+  let lines='';
+  visibleSegs(t).forEach(s=>{const a=ps.find(p=>p.id===s.from),b=ps.find(p=>p.id===s.to);
+    if(a&&b)lines+=`<line x1="${X(a).toFixed(1)}" y1="${Y(a).toFixed(1)}" x2="${X(b).toFixed(1)}" y2="${Y(b).toFixed(1)}" stroke="${DAYCOLORS[s.day%DAYCOLORS.length]}" stroke-width="3" opacity="0.75"/>`;});
+  let dots='';
+  ps.forEach(p=>{const x=X(p),y=Y(p),c=color(p.country),lbl=(p.must||p.id==='base'),end=x>W-170;
+    dots+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${p.id==='base'?7:5.5}" fill="${c}" stroke="#fff" stroke-width="2"/>`;
+    if(lbl)dots+=`<text x="${(end?x-10:x+10).toFixed(1)}" y="${(y+4).toFixed(1)}" font-size="12.5" font-weight="600" fill="#243430" text-anchor="${end?'end':'start'}" style="font-family:sans-serif">${p.must?'★ ':''}${esc(shortName(p.name))}</text>`;
+  });
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" style="display:block">
+    <rect width="${W}" height="${H}" fill="#eaf2ee"/>
+    ${lines}${dots}
+    <text x="${W-12}" y="${H-12}" text-anchor="end" font-size="10" fill="#9bb0a8" style="font-family:sans-serif">Schéma · positions relatives</text>
+  </svg>`;
+}
+function openPlaceModal(place){
+  editingPlaceId=place?place.id:null;
+  const p=place||{name:'',country:'France',lat:'',lng:'',see:'',book:'',must:false};
+  const curDay=(currentTrip().days||[]).findIndex(d=>(d.route||[]).indexOf(place?place.id:'__none__')>-1);
+  const m=document.getElementById('modal');
+  m.innerHTML=`
+    <h2>${place?'Modifier le lieu':'Nouveau lieu'}</h2>
+    <label>Nom</label><input type="text" id="p_name" value="${esc(p.name)}">
+    <div class="row2">
+      <div class="c"><label>Pays</label><select id="p_country">${COUNTRIES.map(c=>`<option ${c===p.country?'selected':''}>${c}</option>`).join('')}</select></div>
+      <div class="c"><label>À voir absolument ?</label><select id="p_must"><option value="non" ${!p.must?'selected':''}>Non</option><option value="oui" ${p.must?'selected':''}>Oui ★</option></select></div>
+    </div>
+    <div class="row2">
+      <div class="c"><label>Latitude</label><input type="text" id="p_lat" value="${esc(p.lat)}" placeholder="46.99"></div>
+      <div class="c"><label>Longitude</label><input type="text" id="p_lng" value="${esc(p.lng)}" placeholder="6.93"></div>
+    </div>
+    <label>À voir / note</label><textarea id="p_see">${esc(p.see)}</textarea>
+    <label>Lien de réservation (URL)</label><input type="text" id="p_book" value="${esc(p.book)}" placeholder="https://…">
+    <label>Jour de visite <span style="text-transform:none;letter-spacing:0;font-weight:400;color:#7d958c">(l’itinéraire se recalcule automatiquement)</span></label>
+    <select id="p_day"><option value="">— aucun —</option>${(currentTrip().days||[]).map((d,i)=>`<option value="${i}" ${i===curDay?'selected':''}>Jour ${i+1}${d.title?' · '+esc(d.title):''}</option>`).join('')}</select>
+    <div class="modal-foot">
+      <button class="cancel" data-act="close-modal" type="button">Annuler</button>
+      <button class="save" id="savePlace" type="button">Enregistrer</button>
+    </div>`;
+  m.querySelector('#savePlace').onclick=savePlace;
+  document.getElementById('modalBg').classList.add('show');
+}
+function savePlace(){
+  const m=document.getElementById('modal');
+  const data={name:m.querySelector('#p_name').value.trim(),country:m.querySelector('#p_country').value,
+    must:m.querySelector('#p_must').value==='oui',
+    lat:parseFloat(m.querySelector('#p_lat').value)||'',lng:parseFloat(m.querySelector('#p_lng').value)||'',
+    see:m.querySelector('#p_see').value.trim(),book:m.querySelector('#p_book').value.trim()};
+  const dayVal=m.querySelector('#p_day')?m.querySelector('#p_day').value:'';
+  const t=currentTrip();t.places=t.places||[];
+  let pid=editingPlaceId;
+  if(editingPlaceId){Object.assign(t.places.find(x=>x.id===editingPlaceId),data);}
+  else {pid=uid();t.places.push(Object.assign({id:pid},data));}
+  (t.days||[]).forEach(d=>{d.route=(d.route||[]).filter(id=>id!==pid);});
+  let di=-1;
+  if(dayVal!==''){di=Number(dayVal);if(t.days&&t.days[di]){t.days[di].route=t.days[di].route||[];if(t.days[di].route.indexOf(pid)<0)t.days[di].route.push(pid);}}
+  closeModal();save();renderMain();
+  if(di>=0)optimizeDay(t,di).then(()=>renderMain());
+}
+function delPlace(id){const t=currentTrip();if(!confirm('Supprimer ce lieu ?'))return;
+  t.places=(t.places||[]).filter(p=>p.id!==id);
+  t.trajets=(t.trajets||[]).filter(x=>x.from!==id&&x.to!==id);save();renderMain();}
+
+/* ---------- mutations ---------- */
+function addTrip(){
+  const t={id:uid(),title:'Nouveau voyage',subtitle:'',start:'',end:'',base:'',
+    days:[{id:uid(),date:'',country:'France',title:'Jour 1',segs:[{w:'Matin',t:''},{w:'Après-midi',t:''}],variante:'',eat:'',tip:'',trajets:'',route:[]}],
+    budget:[],places:[],trajets:[],params:defParams()};
+  state.trips.push(t);state.selectedId=t.id;state.tab='programme';save();render();
+}
+function delTrip(id){
+  if(!confirm('Supprimer ce voyage et tout son contenu ?'))return;
+  state.trips=state.trips.filter(t=>t.id!==id);
+  if(state.selectedId===id)state.selectedId=state.trips[0]?state.trips[0].id:null;
+  save();render();
+}
+function addBud(){
+  const t=currentTrip();t.budget=t.budget||[];
+  t.budget.push({id:uid(),cat:'',label:'',qty:1,pu:0,note:''});save();renderMain();
+}
+function delBud(id){const t=currentTrip();t.budget=t.budget.filter(b=>b.id!==id);save();renderMain();}
+function moveDay(id,dir){
+  const t=currentTrip();const i=t.days.findIndex(d=>d.id===id);if(i<0)return;
+  const j=i+dir;if(j<0||j>=t.days.length)return;
+  const a=t.days[i];t.days[i]=t.days[j];t.days[j]=a;save();renderMain();
+}
+function delDay(id){const t=currentTrip();if(!confirm('Supprimer cette journée ?'))return;t.days=t.days.filter(d=>d.id!==id);save();renderMain();}
+
+/* ---------- day modal ---------- */
+let editingDayId=null;
+function openDayModal(day){
+  editingDayId=day?day.id:null;
+  const d=day||{date:'',country:'France',title:'',segs:[{w:'Matin',t:''},{w:'Midi',t:''},{w:'Après-midi',t:''},{w:'Soir',t:''}],variante:'',eat:'',tip:'',trajets:''};
+  const m=document.getElementById('modal');
+  m.innerHTML=`
+    <h2>${day?'Modifier la journée':'Nouvelle journée'}</h2>
+    <div class="row2">
+      <div class="c"><label>Date</label><input type="date" id="f_date" value="${esc(d.date)}"></div>
+      <div class="c"><label>Pays</label><select id="f_country">${COUNTRIES.map(c=>`<option ${c===d.country?'selected':''}>${c}</option>`).join('')}</select></div>
+    </div>
+    <label>Titre / thème</label><input type="text" id="f_title" value="${esc(d.title)}" placeholder="ex. Neuchâtel : ville & cigares">
+    <label>Créneaux</label>
+    <div id="segWrap"></div>
+    <button class="add-seg" id="addSeg" type="button">+ ajouter un créneau</button>
+    <label>Variante (optionnel)</label><textarea id="f_var">${esc(d.variante)}</textarea>
+    <label>Où manger (optionnel)</label><textarea id="f_eat">${esc(d.eat)}</textarea>
+    <label>Bon à savoir (optionnel)</label><textarea id="f_tip">${esc(d.tip)}</textarea>
+    <label>Trajets (optionnel)</label><input type="text" id="f_traj" value="${esc(d.trajets)}">
+    <div class="modal-foot">
+      <button class="cancel" data-act="close-modal" type="button">Annuler</button>
+      <button class="save" id="saveDay" type="button">Enregistrer</button>
+    </div>`;
+  const wrap=m.querySelector('#segWrap');
+  (d.segs&&d.segs.length?d.segs:[{w:'',t:''}]).forEach(s=>wrap.appendChild(segRow(s.w,s.t)));
+  m.querySelector('#addSeg').onclick=()=>wrap.appendChild(segRow('',''));
+  m.querySelector('#saveDay').onclick=saveDay;
+  document.getElementById('modalBg').classList.add('show');
+}
+function segRow(w,t){
+  const div=document.createElement('div');div.className='seg-row';
+  div.innerHTML=`<input class="w" type="text" placeholder="Moment (Matin…)" value="${esc(w)}">
+    <textarea class="x" placeholder="Activité">${esc(t)}</textarea>
+    <button class="rm" type="button" title="Retirer">✕</button>`;
+  div.querySelector('.rm').onclick=()=>div.remove();
+  return div;
+}
+function saveDay(){
+  const m=document.getElementById('modal');
+  const segs=[...m.querySelectorAll('.seg-row')].map(r=>({w:r.querySelector('.w').value.trim(),t:r.querySelector('.x').value.trim()})).filter(s=>s.w||s.t);
+  const data={date:m.querySelector('#f_date').value,country:m.querySelector('#f_country').value,
+    title:m.querySelector('#f_title').value.trim(),segs,
+    variante:m.querySelector('#f_var').value.trim(),eat:m.querySelector('#f_eat').value.trim(),
+    tip:m.querySelector('#f_tip').value.trim(),trajets:m.querySelector('#f_traj').value.trim()};
+  const t=currentTrip();
+  if(editingDayId){const d=t.days.find(x=>x.id===editingDayId);Object.assign(d,data);}
+  else{t.days.push(Object.assign({id:uid()},data));}
+  closeModal();save();renderMain();
+}
+function closeModal(){document.getElementById('modalBg').classList.remove('show');editingDayId=null;editingPlaceId=null;}
+
+/* ---------- import / export ---------- */
+function exportJSON(){
+  const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='carnet-voyage.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+function importJSON(file){
+  const r=new FileReader();
+  r.onload=()=>{try{const o=JSON.parse(r.result);
+    if(o&&o.trips){state=o;if(!state.selectedId&&state.trips[0])state.selectedId=state.trips[0].id;state.tab=state.tab||'programme';save();render();}
+    else alert('Fichier non reconnu.');}catch(e){alert('Fichier illisible.');}};
+  r.readAsText(file);
+}
+
+/* ---------- events ---------- */
+document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-act]');if(!b)return;
+  const act=b.dataset.act,id=b.dataset.id;
+  if(act==='select'){state.selectedId=id;state.tab='programme';save();render();}
+  else if(act==='add-trip')addTrip();
+  else if(act==='del-trip')delTrip(id);
+  else if(act==='tab'){state.tab=b.dataset.tab;save();renderMain();}
+  else if(act==='add-day')openDayModal(null);
+  else if(act==='edit-day')openDayModal(currentTrip().days.find(d=>d.id===id));
+  else if(act==='del-day')delDay(id);
+  else if(act==='up')moveDay(id,-1);
+  else if(act==='down')moveDay(id,1);
+  else if(act==='add-bud')addBud();
+  else if(act==='del-bud')delBud(id);
+  else if(act==='add-place')openPlaceModal(null);
+  else if(act==='edit-place')openPlaceModal((currentTrip().places||[]).find(p=>p.id===id));
+  else if(act==='del-place')delPlace(id);
+  else if(act==='dayfilter'){state.dayFilter=(b.dataset.day==='all')?'all':Number(b.dataset.day);save();renderMain();}
+  else if(act==='opt-day'){const t=currentTrip();optimizeDay(t,Number(b.dataset.day)).then(()=>renderMain());}
+  else if(act==='mapmode'){state.mapMode=b.dataset.mode;save();renderMain();}
+  else if(act==='toll'){state.avoidToll=!state.avoidToll;_routeCache={};save();renderMain();}
+  else if(act==='bud-per'){const t=currentTrip();const x=t.budget.find(y=>y.id===id);if(x){x.per=(x.per==='person')?'group':'person';if(x.per==='person')x.qty=Number(t.params&&t.params.people)||Number(x.qty)||1;save();renderMain();}}
+  else if(act==='bud-opt'){const t=currentTrip();const x=t.budget.find(y=>y.id===id);if(x){x.opt=!x.opt;save();renderMain();}}
+  else if(act==='apply-people'){const t=currentTrip();const n=Number(t.params&&t.params.people)||1;(t.budget||[]).forEach(x=>{if(x.per==='person')x.qty=n;});save();renderMain();}
+  else if(act==='close-modal')closeModal();
+  else if(act==='print')window.print();
+  else if(act==='export')exportJSON();
+  else if(act==='import')document.getElementById('importFile').click();
+});
+document.getElementById('modalBg').addEventListener('click',e=>{if(e.target.id==='modalBg')closeModal();});
+document.getElementById('importFile').addEventListener('change',e=>{if(e.target.files[0])importJSON(e.target.files[0]);e.target.value='';});
+/* trip header live edit */
+document.addEventListener('input',e=>{
+  const f=e.target.closest('[data-field]');
+  if(f){const t=currentTrip();t[f.dataset.field]=e.target.value;save();
+    if(f.dataset.field==='title'||f.dataset.field==='start'||f.dataset.field==='end')renderSidebar();return;}
+  const pf=e.target.closest('[data-pfield]');
+  if(pf){const t=currentTrip();t.params=t.params||defParams();t.params[pf.dataset.pfield]=parseFloat(e.target.value)||0;save();recalcBudget();return;}
+  const bf=e.target.closest('[data-bfield]');
+  if(bf){const tr=e.target.closest('tr');const t=currentTrip();const b=t.budget.find(x=>x.id===tr.dataset.id);
+    if(b){b[bf.dataset.bfield]=e.target.value;save();
+      if(bf.dataset.bfield==='qty'||bf.dataset.bfield==='pu')recalcBudget();}}
+});
+
+render();
+</script>
+</body>
+</html>
